@@ -4,19 +4,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A web interface to control the chicken door">
+    <meta name="author" content="John Doe">
+    <meta name="keywords" content="chicken, door, controller, web, interface">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="msapplication-config" content="/img/icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
     <title>Chicken Door Controller</title>
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/icons/favicon-16x16.png">
+    <link rel="manifest" href="/img/icons/site.webmanifest">
+    <link rel="mask-icon" href="/img/icons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="/img/icons/favicon.ico">
+
+    <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Chicken Facts -->
+    <script src="/chickenFacts.js"></script>
+
+    <!-- Style -->
     <style>
         body {
             background-color: #f3f4f6;
         }
+
         .btn {
             width: 100%;
             margin-bottom: 10px;
         }
+
+        #randomFact {
+            background-color: white;
+            border-radius: 20px;
+            padding: 10px;
+        }
+
         #logList {
             list-style-type: none;
             padding: 0;
@@ -27,11 +65,14 @@
 <body>
 
     <nav class="navbar navbar-dark bg-dark">
-        <span class="navbar-brand mb-0 h1"><i class="fa-solid fa-egg"></i> Chicken Door Controller</span>
+        <span class="navbar-brand mb-0 h1">Chicken Door Controller</span>
+        <span class="navbar-text">
+            <i id="doorIcon" class="fa-2x fas fa-toggle-off"></i>
+        </span>
     </nav>
 
     <div class="container mt-4">
-        <div class="alert alert-warning" role="alert" id="doorStatus">
+        <div class="mt-4 alert alert-info" role="alert" id="doorStatus">
             Door Status: Unknown
         </div>
         <div class="row">
@@ -50,12 +91,24 @@
             <h3 class="mb-3">Log:</h3>
             <pre class="mb-0"><code id="logList" class="text-dark"></code></pre>
         </div>
+        <div class="d-flex text-center mt-4">
+            <img src="/img/icons/android-chrome-512x512.png" class="img-fluid" style="max-width: 100px; height: 100%;">
+            <blockquote id="randomFact" class="mt-4 text-center">
+            </blockquote>
+        </div>
     </div>
 
     <script>
         function updateDoorStatus() {
             $.getJSON('/api/door_status', function(data) {
-                $('#doorStatus').html("<h3>Door Status: <span class='badge badge-primary'>" + data.status + "</span></h3>");
+                const doorStatus = data.status;
+                $('#doorStatus').html("<h3>Door Status: <span class='badge badge-primary'>" + doorStatus +
+                    "</span></h3>");
+                if (doorStatus === 'open') {
+                    $('#doorIcon').removeClass('fa-toggle-off').addClass('fa-toggle-on');
+                } else {
+                    $('#doorIcon').removeClass('fa-toggle-on').addClass('fa-toggle-off');
+                }
             });
         }
 
@@ -70,7 +123,15 @@
             logList.prepend('<li>' + message + '</li>');
         }
 
+        // Function to display a random chicken fact
+        function displayRandomFact() {
+            const randomIndex = Math.floor(Math.random() * chickenFacts.length);
+            const randomFact = chickenFacts[randomIndex];
+            $('#randomFact').html("<strong>Chicken Fact!</strong> " + randomFact);
+        }
+
         $(document).ready(function() {
+            displayRandomFact();
             updateDoorStatus();
 
             $('#openDoorBtn').click(function() {

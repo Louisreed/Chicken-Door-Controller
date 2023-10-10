@@ -77,11 +77,13 @@ def ease_motor(direction, duration):
 
 # Function to open and close the door
 def open_door():
+    global door_status
     ease_motor(True, 10)
     log_message(f"Door opened")
     door_status = "opened"
 
 def close_door():
+    global door_status
     ease_motor(False, 10)
     log_message(f"Door closed")
     door_status = "closed"
@@ -93,7 +95,7 @@ def api_open_door():
     global door_status
     ease_motor(True, 10)
     log_message("Door opened")
-    door_status = "opened"
+    door_status = "Open"
     return jsonify(status='success')
 
 @app.route('/api/close_door', methods=['POST'])
@@ -101,7 +103,7 @@ def api_close_door():
     global door_status
     ease_motor(False, 10)
     log_message("Door closed")
-    door_status = "closed"
+    door_status = "Closed"
     return jsonify(status='success')
 
 
