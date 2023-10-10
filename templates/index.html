@@ -14,7 +14,8 @@
     <title>Chicken Door Controller</title>
 
     <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename = 'icons/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180"
+        href="{{ url_for('static', filename = 'icons/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32"
         href="{{ url_for('static', filename = 'icons/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16"
@@ -72,12 +73,14 @@
         .speech-bubble:before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 20px;
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-bottom: 10px solid #f9f9f9;
-            transform: translateY(-100%);
+            top: 20px;
+            /* Adjust this value to set the vertical position of the triangle */
+            left: -10px;
+            /* Shifts the triangle to the left of the speech bubble */
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid #f9f9f9;
+            /* Makes the triangle point to the left */
         }
     </style>
 </head>
