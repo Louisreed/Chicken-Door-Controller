@@ -99,16 +99,18 @@
             Door Status: Unknown
         </div>
         <div class="row">
+            <div class="progress mt-4">
+                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0"
+                    aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-6">
                 <button id="openDoorBtn" class="btn btn-success"><i class="fas fa-toggle-off"></i> Open Door</button>
             </div>
             <div class="col-6">
                 <button id="closeDoorBtn" class="btn btn-danger"><i class="fas fa-toggle-on"></i> Close Door</button>
             </div>
-        </div>
-        <div class="progress mt-4">
-            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0"
-                aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <div id="log" class="mt-4 bg-light p-3 rounded">
             <h3 class="mb-3">Log:</h3>
