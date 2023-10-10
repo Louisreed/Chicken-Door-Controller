@@ -14,12 +14,14 @@
     <title>Chicken Door Controller</title>
 
     <!-- Favicon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16x16.png') }}">
-    <link rel="manifest" href="{{ url_for('static', filename='icons/site.webmanifest') }}">
-    <link rel="mask-icon" href="{{ url_for('static', filename='icons/safari-pinned-tab.svg') }}" color="#5bbad5">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='icons/favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename = 'icons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ url_for('static', filename = 'icons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16"
+        href="{{ url_for('static', filename = 'icons/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename = 'icons/site.webmanifest') }}">
+    <link rel="mask-icon" href="{{ url_for('static', filename = 'icons/safari-pinned-tab.svg') }}" color="#5bbad5">
+    <link rel="shortcut icon" href="{{ url_for('static', filename = 'icons/favicon.ico') }}">
 
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -36,7 +38,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Chicken Facts -->
-    <script src="{{ url_for('static', filename='chickenFacts.js') }}"></script>
+    <script src="{{ url_for('static', filename = 'chickenFacts.js') }}"></script>
 
     <!-- Style -->
     <style>
@@ -58,6 +60,24 @@
         #logList {
             list-style-type: none;
             padding: 0;
+        }
+
+        .speech-bubble {
+            position: relative;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .speech-bubble:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 20px;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid #f9f9f9;
+            transform: translateY(-100%);
         }
     </style>
 </head>
@@ -92,8 +112,9 @@
             <pre class="mb-0"><code id="logList" class="text-dark"></code></pre>
         </div>
         <div class="d-flex text-center mt-4">
-            <img src="{{ url_for('static', filename='icons/android-chrome-512x512.png') }}" class="img-fluid" style="max-width: 100px; height: 100%;">
-            <blockquote id="randomFact" class="mt-4 text-center">
+            <img src="{{ url_for('static', filename = 'icons/android-chrome-512x512.png') }}" class="img-fluid"
+                style="max-width: 100px; height: 100%;">
+            <blockquote id="randomFact" class="mt-4 text-center speech-bubble">
             </blockquote>
         </div>
     </div>
