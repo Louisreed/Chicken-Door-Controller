@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chicken Door Controller</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/6a5b0b2b3e.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div class="container mt-4">
+        <h1>Chicken Door Controller</h1>
+        <div class="alert alert-warning" role="alert">
+            Door Status: Unknown
+        </div>
+        <button id="openDoorBtn" class="btn btn-success"><i class="fas fa-open"></i> Open Door</button>
+        <button id="closeDoorBtn" class="btn btn-danger">Close Door</button>
+        <div class="progress mt-4">
+            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0"
+                aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div id="log" class="mt-4">
+            <h3>Log:</h3>
+            <ul id="logList"></ul>
+        </div>
+    </div>
+
+    <script>
+        function updateDoorStatus() {
+            $.getJSON('/api/door_status', function(data) {
+                $('#doorStatus').text("Door Status: " + data.status);
+            });
+        }
+
+        function updateProgress() {
+            $.getJSON('/api/progress', function(data) {
+                $('#progressBar').css('width', data.progress + '%').attr('aria-valuenow', data.progress);
+            });
+        }
+
+        function addLog(message) {
+            const logList = $('#logList');
+            logList.prepend('<li>' + message + '</li>');
+        }
+
+        $(document).ready(function() {
+            updateDoorStatus();
+
+            $('#openDoorBtn').click(function() {
+                $.post('/api/open_door', function(data) {
+                    if (data.status === 'success') {
+                        let interval = setInterval(function() {
+                            updateProgress();
+                        }, 100);
+
+                        setTimeout(function() {
+                            clearInterval(interval);
+                            updateProgress();
+                            updateDoorStatus();
+                            addLog('Door opened');
+                        }, 10000); // 10 seconds, or the time it takes to fully open the door
+                    }
+                });
+            });
+
+            $('#closeDoorBtn').click(function() {
+                $.post('/api/close_door', function(data) {
+                    if (data.status === 'success') {
+                        let interval = setInterval(function() {
+                            updateProgress();
+                        }, 100);
+
+                        setTimeout(function() {
+                            clearInterval(interval);
+                            updateProgress();
+                            updateDoorStatus();
+                            addLog('Door closed');
+                        }, 10000); // 10 seconds, or the time it takes to fully close the door
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

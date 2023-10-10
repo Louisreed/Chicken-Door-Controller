@@ -1,0 +1,12 @@
+[Unit]
+Description=Chicken Door Controller Service
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/louis/chickenDoorController.py
+Restart=on-failure
+User=louis
+WorkingDirectory=/home/louis
+
+[Install]
+WantedBy=multi-user.target
