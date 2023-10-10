@@ -33,7 +33,7 @@ pwm.start(0)
 app = Flask(__name__)
 
 # Initialize your door status
-door_status = "closed"
+door_status = "Closed"
 
 # Initialize door opening/closing progress
 progress = 0
