@@ -114,7 +114,11 @@
         </div>
         <div id="log" class="mt-4 bg-light p-3 rounded">
             <h3 class="mb-3">Log:</h3>
-            <pre class="mb-0"><code id="logList" class="text-dark"></code></pre>
+            <pre class="mb-0"><code id="logList" class="text-dark">
+                {% for line in log_data %}
+                    <li>{{ line|safe }}</li>
+                {% endfor %}
+            </code></pre>
         </div>
         <div class="d-flex text-center mt-4">
             <img src="{{ url_for('static', filename = 'icons/android-chrome-512x512.png') }}" class="img-fluid"

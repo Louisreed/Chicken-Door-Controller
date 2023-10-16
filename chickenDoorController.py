@@ -124,8 +124,12 @@ def api_progress():
 # Landing page
 @app.route('/')
 def index():
-    return render_template('index.html')
+    with open('door_log.txt', 'r') as f:
+        log_data = f.readlines()
+    return render_template('index.html', log_data=log_data)
 
+if __name__ == '__main__':
+    app.run()
 
 # Schedule tasks
 schedule.every().day.at("06:00").do(open_door)
