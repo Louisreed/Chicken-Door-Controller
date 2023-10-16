@@ -124,7 +124,9 @@
         </div>
     </div>
 
+    <!-- Custom JS -->
     <script>
+        // Function to update the door status badge and icon
         function updateDoorStatus() {
             $.getJSON('/api/door_status', function(data) {
                 const doorStatus = data.status;
@@ -138,12 +140,14 @@
             });
         }
 
+        // Function to update the progress bar
         function updateProgress() {
             $.getJSON('/api/progress', function(data) {
                 $('#progressBar').css('width', data.progress + '%').attr('aria-valuenow', data.progress);
             });
         }
 
+        // Function to add a message to the log
         function addLog(message) {
             const logList = $('#logList');
             logList.prepend('<li>' + message + '</li>');
@@ -156,10 +160,12 @@
             $('#randomFact').html("<strong>Bawk-bawk, Chicken Fact!</strong> " + randomFact + " Baaaawwwwwk!");
         }
 
+        // Function to update the door status badge and icon every 5 seconds
         $(document).ready(function() {
             displayRandomFact();
             updateDoorStatus();
 
+            // Open the door when the button is clicked
             $('#openDoorBtn').click(function() {
                 $.post('/api/open_door', function(data) {
                     if (data.status === 'success') {
@@ -177,6 +183,7 @@
                 });
             });
 
+            // Close the door when the button is clicked
             $('#closeDoorBtn').click(function() {
                 $.post('/api/close_door', function(data) {
                     if (data.status === 'success') {
