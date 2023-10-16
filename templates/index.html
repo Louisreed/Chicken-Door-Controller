@@ -36,7 +36,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
 
     <!-- Chicken Facts -->
     <script src="{{ url_for('static', filename = 'chickenFacts.js') }}"></script>
@@ -114,11 +115,7 @@
         </div>
         <div id="log" class="mt-4 bg-light p-3 rounded">
             <h3 class="mb-3">Log:</h3>
-            <pre class="mb-0"><code id="logList" class="text-dark">
-                {% for line in log_data %}
-                    <li>{{ line|safe }}</li>
-                {% endfor %}
-            </code></pre>
+            <pre class="mb-0"><code id="logList" class="text-dark"></code></pre>
         </div>
         <div class="d-flex text-center mt-4">
             <img src="{{ url_for('static', filename = 'icons/android-chrome-512x512.png') }}" class="img-fluid"
@@ -156,6 +153,15 @@
             const logList = $('#logList');
             logList.prepend('<li>' + message + '</li>');
         }
+
+        // Fetch log data from the server and populate the list
+        $(document).ready(function() {
+            $.get('/get_logs', function(data) {
+                data.log_data.forEach(function(line) {
+                    addLog(line);
+                });
+            });
+        });
 
         // Function to display a random chicken fact
         function displayRandomFact() {

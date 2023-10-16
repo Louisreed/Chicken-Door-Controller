@@ -121,19 +121,23 @@ def api_progress():
     return jsonify(progress=progress)
 
 
-# Landing page
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/get_logs')
+def get_logs():
     with open('door_log.txt', 'r') as f:
         log_data = f.readlines()
-    return render_template('index.html', log_data=log_data)
+    return jsonify(log_data=log_data)
 
 if __name__ == '__main__':
     app.run()
 
+
 # Schedule tasks
-schedule.every().day.at("06:00").do(open_door)
-schedule.every().day.at("20:00").do(close_door)
+schedule.every().day.at("07:00").do(open_door)
+schedule.every().day.at("07:00").do(close_door)
 
 
 # Main loop for Flask app
