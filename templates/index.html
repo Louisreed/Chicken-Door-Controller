@@ -36,8 +36,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Chicken Facts -->
     <script src="{{ url_for('static', filename = 'chickenFacts.js') }}"></script>
@@ -125,9 +124,7 @@
         </div>
     </div>
 
-    <!-- Custom JS -->
     <script>
-        // Function to update the door status badge and icon
         function updateDoorStatus() {
             $.getJSON('/api/door_status', function(data) {
                 const doorStatus = data.status;
@@ -141,27 +138,16 @@
             });
         }
 
-        // Function to update the progress bar
         function updateProgress() {
             $.getJSON('/api/progress', function(data) {
                 $('#progressBar').css('width', data.progress + '%').attr('aria-valuenow', data.progress);
             });
         }
 
-        // Function to add a message to the log
         function addLog(message) {
             const logList = $('#logList');
             logList.prepend('<li>' + message + '</li>');
         }
-
-        // Fetch log data from the server and populate the list
-        $(document).ready(function() {
-            $.get('/get_logs', function(data) {
-                data.log_data.forEach(function(line) {
-                    addLog(line);
-                });
-            });
-        });
 
         // Function to display a random chicken fact
         function displayRandomFact() {
@@ -170,12 +156,10 @@
             $('#randomFact').html("<strong>Bawk-bawk, Chicken Fact!</strong> " + randomFact + " Baaaawwwwwk!");
         }
 
-        // Function to update the door status badge and icon every 5 seconds
         $(document).ready(function() {
             displayRandomFact();
             updateDoorStatus();
 
-            // Open the door when the button is clicked
             $('#openDoorBtn').click(function() {
                 $.post('/api/open_door', function(data) {
                     if (data.status === 'success') {
@@ -193,7 +177,6 @@
                 });
             });
 
-            // Close the door when the button is clicked
             $('#closeDoorBtn').click(function() {
                 $.post('/api/close_door', function(data) {
                     if (data.status === 'success') {
