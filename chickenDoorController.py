@@ -6,15 +6,27 @@ It uses a Raspberry Pi's GPIO pins to control a motor, which opens and closes th
 The door is scheduled to open at 6:00 and close at 20:00 every day.
 The script also listens for user input to manually open or close the door.
 """
-
+from telegram.ext import Updater, CommandHandler
 from datetime import datetime
 import schedule
 from threading import Thread
 import time
 import RPi.GPIO as GPIO
 from flask import Flask, jsonify, render_template
+from dotenv import load_dotenv
+import os
 import sys
 import select
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get Telegram API token
+TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
+
+# Initialize Telegram Bot
+updater = Updater(token=TELEGRAM_API_TOKEN, use_context=True)
+dispatcher = updater.dispatcher
 
 # Disable warnings
 GPIO.setwarnings(False)
@@ -88,6 +100,23 @@ def close_door():
     log_message(f"Door closed")
     door_status = "closed"
     
+# Telegram command to open door
+def tg_open_door(update, context):
+    open_door()
+    update.message.reply_text("Door opened.")
+
+# Telegram command to close door
+def tg_close_door(update, context):
+    close_door()
+    update.message.reply_text("Door closed.")
+
+# Add command handlers
+dispatcher.add_handler(CommandHandler('open', tg_open_door))
+dispatcher.add_handler(CommandHandler('close', tg_close_door))
+
+# Start the Bot
+updater.start_polling()
+
     
 # Function to listen for user input    
 @app.route('/api/open_door', methods=['POST'])
