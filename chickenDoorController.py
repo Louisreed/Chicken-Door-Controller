@@ -148,9 +148,11 @@ if __name__ == '__main__':
     # Start the Bot
     application.run_polling()
     logger.info("Bot started")
-
-
     
+    # Send a startup message
+    application.bot.send_message(chat_id=TARGET_CHAT_ID, text="The system is up and running.")
+
+
 # Function to listen for user input    
 @app.route('/api/open_door', methods=['POST'])
 def api_open_door():
