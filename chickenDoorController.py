@@ -15,11 +15,11 @@ from threading import Thread
 import time
 try:
     import RPi.GPIO as GPIO
+    from flask import Flask, jsonify, render_template
 except ImportError:
     # Handle the ImportError
-    print("RPi.GPIO is not available. This is not a Raspberry Pi.")
+    print("RPi.GPIO and flask not available. This is not a Raspberry Pi.")
 
-from flask import Flask, jsonify, render_template
 from dotenv import load_dotenv
 import os
 import sys
