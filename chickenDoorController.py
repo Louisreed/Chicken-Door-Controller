@@ -28,7 +28,6 @@ TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 # Initialize Telegram Bot
 updater = Updater(token=TELEGRAM_API_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
-context = CallbackContext(dispatcher)
 
 # Disable warnings
 GPIO.setwarnings(False)
@@ -103,8 +102,7 @@ def close_door():
     door_status = "closed"
     
 def send_message(context, text):
-    # Replace 'YOUR_CHAT_ID' with the chat ID where you want the message to be sent.
-    context.bot.send_message(chat_id='TARGET_CHAT_ID', text=text)
+    context.bot.send_message(chat_id=TARGET_CHAT_ID, text=text)
     
 # Telegram command to open door
 def tg_open_door(update, context):
