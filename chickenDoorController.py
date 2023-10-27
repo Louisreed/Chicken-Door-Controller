@@ -109,10 +109,20 @@ def tg_open_door(update, context):
 def tg_close_door(update, context):
     close_door()
     update.message.reply_text("Door closed.")
+    
+# Telegram command to check door status
+def tg_door_status(update, context):
+    update.message.reply_text(f"The door is currently {door_status}.")
+
+# Telegram command to check if the system is working
+def tg_ping(update, context):
+    update.message.reply_text("The system is up and running.")
 
 # Add command handlers
 dispatcher.add_handler(CommandHandler('open', tg_open_door))
 dispatcher.add_handler(CommandHandler('close', tg_close_door))
+dispatcher.add_handler(CommandHandler('status', tg_door_status))
+dispatcher.add_handler(CommandHandler('ping', tg_ping))
 
 # Start the Bot
 updater.start_polling()
