@@ -37,7 +37,7 @@ TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 
 # Initialize Telegram Bot
-updater = Updater(TELEGRAM_API_TOKEN)
+# updater = Updater(TELEGRAM_API_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 # Log the initialization
