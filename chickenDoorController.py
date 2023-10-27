@@ -13,7 +13,12 @@ from datetime import datetime
 import schedule
 from threading import Thread
 import time
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    # Handle the ImportError
+    print("RPi.GPIO is not available. This is not a Raspberry Pi.")
+
 from flask import Flask, jsonify, render_template
 from dotenv import load_dotenv
 import os
