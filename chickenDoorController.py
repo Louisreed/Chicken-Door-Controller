@@ -7,7 +7,8 @@ The door is scheduled to open at 6:00 and close at 20:00 every day.
 The script also listens for user input to manually open or close the door.
 """
 import logging
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, ApplicationBuilder
 from datetime import datetime
 import schedule
 from threading import Thread
@@ -113,23 +114,30 @@ def send_message(context, text):
     context.bot.send_message(chat_id=TARGET_CHAT_ID, text=text)
     
 # Telegram command to open door
-def tg_open_door(update, context):
-    open_door()
-    update.message.reply_text("Door opened.")
-    send_message(context, "Door opened via Telegram command.")
+async def tg_open_door(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await open_door()
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
 # Telegram command to close door
-def tg_close_door(update, context):
-    close_door()
-    update.message.reply_text("Door closed.")
-    
-# Telegram command to check door status
-def tg_door_status(update, context):
-    update.message.reply_text(f"The door is currently {door_status}.")
+async def tg_close_door(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await close_door()
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
 
-# Telegram command to check if the system is working
-def tg_ping(update, context):
-    update.message.reply_text("The system is up and running.")
+# Telegram command to check door status
+async def tg_door_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="The door is currently {door_status}.")
+
+# Telegram command to check if the system is working   
+async def tg_ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="The system is up and running.")
+
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
+    
+    open_door_handler = CommandHandler('open', tg_open_door)
+    application.add_handler(open_door_handler)
+    
+    application.run_polling()
 
 # Add command handlers
 dispatcher.add_handler(CommandHandler('open', tg_open_door))
