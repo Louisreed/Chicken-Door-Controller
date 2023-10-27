@@ -8,7 +8,7 @@ The script also listens for user input to manually open or close the door.
 """
 import logging
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, ApplicationBuilder
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from datetime import datetime
 import schedule
 from threading import Thread
@@ -35,10 +35,6 @@ load_dotenv()
 # Get Telegram API token
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
-
-# Initialize Telegram Bot
-# updater = Updater(TELEGRAM_API_TOKEN, use_context=True)
-# dispatcher = updater.dispatcher
 
 # Log the initialization
 logger.info("Initialized Telegram bot")
@@ -119,40 +115,35 @@ def send_message(context, text):
     context.bot.send_message(chat_id=TARGET_CHAT_ID, text=text)
     
 # Telegram command to open door
-async def tg_open_door(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await open_door()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
+def tg_open_door(update: Update, context: CallbackContext):
+    open_door()
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
 # Telegram command to close door
-async def tg_close_door(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await close_door()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+def tg_close_door(update: Update, context: CallbackContext):
+    close_door()
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
 
 # Telegram command to check door status
-async def tg_door_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="The door is currently {door_status}.")
+def tg_door_status(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
 
 # Telegram command to check if the system is working   
-async def tg_ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="The system is up and running.")
+def tg_ping(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="The system is up and running.")
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
     
-    open_door_handler = CommandHandler('open', tg_open_door)
-    application.add_handler(open_door_handler)
+    application.add_handler(CommandHandler('open', tg_open_door))
+    application.add_handler(CommandHandler('close', tg_close_door))
+    application.add_handler(CommandHandler('status', tg_door_status))
+    application.add_handler(CommandHandler('ping', tg_ping))
     
+    # Start the Bot
     application.run_polling()
+    logger.info("Bot started")
 
-# Add command handlers
-dispatcher.add_handler(CommandHandler('open', tg_open_door))
-dispatcher.add_handler(CommandHandler('close', tg_close_door))
-dispatcher.add_handler(CommandHandler('status', tg_door_status))
-dispatcher.add_handler(CommandHandler('ping', tg_ping))
-
-# Start the Bot
-updater.start_polling()
-logger.info("Bot started")
     
 # Function to listen for user input    
 @app.route('/api/open_door', methods=['POST'])
