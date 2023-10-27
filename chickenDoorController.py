@@ -7,7 +7,7 @@ The door is scheduled to open at 6:00 and close at 20:00 every day.
 The script also listens for user input to manually open or close the door.
 """
 import logging
-from telegram import Update
+from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from datetime import datetime
 import schedule
@@ -133,6 +133,7 @@ async def tg_door_status(update: Update, context: CallbackContext):
 async def tg_ping(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="The system is up and running.")
 
+
 if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
     
@@ -149,8 +150,9 @@ if __name__ == '__main__':
     application.run_polling()
     logger.info("Bot started")
     
-    # Send a startup message
-    application.bot.send_message(chat_id=TARGET_CHAT_ID, text="The system is up and running.")
+    # Send a startup message using a synchronous bot
+    bot = Bot(token=TELEGRAM_API_TOKEN)
+    bot.send_message(chat_id=TARGET_CHAT_ID, text="The system is up and running.")
 
 
 # Function to listen for user input    
