@@ -6,6 +6,7 @@ It uses a Raspberry Pi's GPIO pins to control a motor, which opens and closes th
 The door is scheduled to open at 6:00 and close at 20:00 every day.
 The script also listens for user input to manually open or close the door.
 """
+import logging
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from datetime import datetime
 import schedule
@@ -18,6 +19,10 @@ import os
 import sys
 import select
 
+# Initialize logging
+logging.basicConfig(filename='chicken.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -28,6 +33,9 @@ TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 # Initialize Telegram Bot
 updater = Updater(token=TELEGRAM_API_TOKEN, use_context=True)
 dispatcher = updater.dispatcher
+
+# Log the initialization
+logger.info("Initialized Telegram bot")
 
 # Disable warnings
 GPIO.setwarnings(False)
@@ -41,6 +49,7 @@ GPIO.setup(7, GPIO.OUT)
 # Initialize PWM
 pwm = GPIO.PWM(7, 100)
 pwm.start(0)
+logger.info("pwm initialised")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -50,7 +59,6 @@ door_status = "Closed"
 
 # Initialize door opening/closing progress
 progress = 0
-
 
 # Custom logging
 def log_message(message):
@@ -131,7 +139,7 @@ dispatcher.add_handler(CommandHandler('ping', tg_ping))
 
 # Start the Bot
 updater.start_polling()
-
+logger.info("Bot started")
     
 # Function to listen for user input    
 @app.route('/api/open_door', methods=['POST'])
@@ -202,6 +210,7 @@ scheduler_thread.start()
 
 # Main loop
 try:
+    logger.info("Entering main loop")
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
