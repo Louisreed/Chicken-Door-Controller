@@ -159,7 +159,7 @@ if __name__ == '__main__':
 @app.route('/api/open_door', methods=['POST'])
 def api_open_door():
     global door_status
-    ease_motor(True, 10)
+    ease_motor(True, 14)
     log_message("Door opened")
     door_status = "Open"
     return jsonify(status='success')
@@ -167,7 +167,7 @@ def api_open_door():
 @app.route('/api/close_door', methods=['POST'])
 def api_close_door():
     global door_status
-    ease_motor(False, 10)
+    ease_motor(False, 14)
     log_message("Door closed")
     door_status = "Closed"
     return jsonify(status='success')
