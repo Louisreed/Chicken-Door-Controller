@@ -161,7 +161,7 @@ if __name__ == '__main__':
 
     # Scheduler Setup
     schedule.every().day.at("06:00").do(open_door)
-    schedule.every().day.at("20:00").do(close_door)
+    schedule.every().day.at("19:00").do(close_door)
 
     # Start Flask Thread
     flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
