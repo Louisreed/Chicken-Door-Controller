@@ -80,13 +80,34 @@ def open_door():
     log_message("Door opened")
     door_status = "Opened"
 
-
 def close_door():
     """Closes the chicken coop door."""
     global door_status
     ease_motor(False, 10)
     log_message("Door closed")
     door_status = "Closed"
+    
+    
+# === Scheduler Functions ===
+
+def scheduled_open_door():
+    """Scheduled task to open the chicken coop door."""
+    open_door()  # Call the existing open_door function
+    send_telegram_message("Good Morning! Door opened.")
+
+
+def scheduled_close_door():
+    """Scheduled task to close the chicken coop door."""
+    close_door()  # Call the existing close_door function
+    send_telegram_message("Goodnight! Door closed.")
+
+
+# === Telegram Messages ===
+
+def send_telegram_message(message):
+    """Sends a message via Telegram using a synchronous bot."""
+    bot = Bot(token=TELEGRAM_API_TOKEN)
+    bot.send_message(chat_id=TARGET_CHAT_ID, text=message)
 
 
 # === Telegram Bot Commands ===
@@ -160,8 +181,8 @@ if __name__ == '__main__':
     logger.info("Bot started")
 
     # Scheduler Setup
-    schedule.every().day.at("06:00").do(open_door)
-    schedule.every().day.at("19:00").do(close_door)
+    schedule.every().day.at("06:00").do(scheduled_open_door)
+    schedule.every().day.at("19:00").do(scheduled_close_door)
 
     # Start Flask Thread
     flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
