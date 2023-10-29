@@ -330,6 +330,10 @@ def index():
 # === Main Program ===
 
 if __name__ == '__main__':
+    # Initial Schedule Setup
+    load_schedule_from_file()  # Load the schedule from a file
+    update_schedule()  # Update the schedule based on loaded times
+
     # Telegram Bot Setup
     application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
     application.add_handler(CommandHandler('open', tg_open_door))
@@ -340,15 +344,11 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
     application.add_handler(CommandHandler('help', tg_help))  # Add the new Telegram command for help
-    
+
     # Start Telegram Bot
     application.run_polling()
     logger.info("Bot started")
     
-    # Initial Schedule Setup
-    load_schedule_from_file()  # Load the schedule from a file
-    update_schedule()  # Update the schedule based on loaded times
-
     # Start Flask Thread
     flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
     flask_thread.daemon = True
