@@ -74,6 +74,16 @@ def ease_motor(direction, duration):
         pwm.ChangeDutyCycle(duty)
         progress = 100 - duty
         time.sleep(0.1)
+        
+        
+async def update_telegram_progress(context: CallbackContext, chat_id, message_id, direction):
+    """Updates the Telegram message to show the door's progress."""
+    global progress  # make sure to use the global variable
+    
+    for _ in range(10):  # This loop assumes 10 updates; adjust as needed
+        time.sleep(1)  # Simulate some work; replace with actual work if needed
+        text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
+        await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
 
 
 # === Door Control Functions ===
@@ -128,14 +138,29 @@ def send_telegram_message(message):
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
-    open_door()
+    # Send initial message
+    message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Opening door: ---------- 0%")
+    
+    # Start the door opening in a new thread
+    door_thread = Thread(target=open_door)
+    door_thread.start()
+    
+    # Update the progress in Telegram
+    await update_telegram_progress(context, update.effective_chat.id, message.message_id, "Opening")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
-
 
 # Close the door
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
-    close_door()
+    # Send initial message
+    message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Closing door: ---------- 0%")
+    
+    # Start the door closing in a new thread
+    door_thread = Thread(target=close_door)
+    door_thread.start()
+    
+    # Update the progress in Telegram
+    await update_telegram_progress(context, update.effective_chat.id, message.message_id, "Closing")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
 
 
