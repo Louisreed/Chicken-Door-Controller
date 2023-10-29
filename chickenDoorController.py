@@ -332,7 +332,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
     application.add_handler(CommandHandler('help', tg_help))
-    application.add_handler(CommandHandler('update_restart', tg_update_restart))  # Add the new Telegram command for update and restart
+    application.add_handler(CommandHandler('update', tg_update_restart))  # Add the new Telegram command for update and restart
 
     # Start Telegram Bot
     application.run_polling()
