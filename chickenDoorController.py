@@ -20,6 +20,10 @@ from dotenv import load_dotenv
 open_time = "06:00"  # Default opening time
 close_time = "19:00"  # Default closing time
 
+# Initialize authenticated users dictionary
+authenticated_users = {}
+
+
 # === Initialization ===
 
 # Initialize Logging
@@ -157,14 +161,26 @@ async def tg_start(update: Update, context: CallbackContext):
 # Authenticate the bot
 async def tg_password(update: Update, context: CallbackContext):
     entered_password = " ".join(context.args)
+    chat_id = update.effective_chat.id
     if entered_password == BOT_PASSWORD:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Authenticated. You can now use the bot.")
+        authenticated_users[chat_id] = True
+        await context.bot.send_message(chat_id=chat_id, text="Authenticated. You can now use the bot.")
     else:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong password. Try again.")
+        await context.bot.send_message(chat_id=chat_id, text="Wrong password. Try again.")
+
+
+# Check if the user is authenticated
+def is_authenticated(chat_id):
+    return authenticated_users.get(chat_id, False)
+
 
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     global progress
     progress = 0  # Reset progress
     message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Opening door: ---------- 0%")
@@ -181,6 +197,10 @@ async def tg_open_door(update: Update, context: CallbackContext):
 # Close the door
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     global progress
     progress = 0  # Reset progress
     message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Closing door: ---------- 0%")
@@ -197,6 +217,10 @@ async def tg_close_door(update: Update, context: CallbackContext):
 # Check the door status
 async def tg_door_status(update: Update, context: CallbackContext):
     """Telegram command to check the door status."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
    
    
@@ -209,6 +233,10 @@ def save_schedule_to_file():
 # Load the schedule from a file
 async def tg_set_schedule(update: Update, context: CallbackContext):
     """Telegram command to set the schedule."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     global open_time, close_time
     try:
         open_time, close_time = context.args
@@ -242,6 +270,10 @@ def load_schedule_from_file():
 # Get the schedule
 async def tg_get_schedule(update: Update, context: CallbackContext):
     """Telegram command to get the current schedule."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Door is scheduled to open at {open_time} and close at {close_time}."
@@ -257,6 +289,10 @@ async def error_handler(update: Update, context: CallbackContext):
 # Get the last N log entries
 async def tg_get_logs(update: Update, context: CallbackContext):
     """Telegram command to get the last N log entries, default is 25."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     try:
         num_logs = int(context.args[0]) if context.args else 25  # Use the first argument as the number of logs, default to 25
     except ValueError:
@@ -271,6 +307,10 @@ async def tg_get_logs(update: Update, context: CallbackContext):
 # Show the help message
 async def tg_help(update: Update, context: CallbackContext):
     """Telegram command to show available commands and their descriptions."""
+    chat_id = update.effective_chat.id
+    if not is_authenticated(chat_id):
+        await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
+        return
     help_text = """
     🤖 *Chicken Door Controller Bot Commands:*
 
