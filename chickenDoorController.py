@@ -254,12 +254,19 @@ async def tg_help(update: Update, context: CallbackContext):
 
 
 async def tg_update_restart(update: Update, context: CallbackContext):
-    """Telegram command to run the update_and_restart.sh script."""
+    """Telegram command to update code and restart service."""
     await context.bot.send_message(chat_id=update.effective_chat.id, text="🔄 Update and restart process has started.")
     
-    # Run the shell script
     try:
-        subprocess.run(["sudo", "./update_and_restart.sh"], check=True)
+        # Equivalent of git pull origin main
+        subprocess.run(["git", "pull", "origin", "main"], check=True)
+        
+        # Equivalent of sudo systemctl daemon-reload
+        subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
+        
+        # Equivalent of sudo systemctl restart chickenDoorController.service
+        subprocess.run(["sudo", "systemctl", "restart", "chickenDoorController.service"], check=True)
+        
         await context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Update and restart process completed successfully.")
     except subprocess.CalledProcessError as e:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Update and restart failed. Error: {e}")
