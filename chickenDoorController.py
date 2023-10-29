@@ -393,16 +393,17 @@ if __name__ == '__main__':
 
     # Telegram Bot Setup
     application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
-    # application.add_handler(CommandHandler('start', tg_start))
     application.add_handler(CommandHandler('password', tg_password))
     application.add_handler(CommandHandler('open', tg_open_door))
     application.add_handler(CommandHandler('close', tg_close_door))
     application.add_handler(CommandHandler('status', tg_door_status))
-    application.add_error_handler(error_handler)
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
     application.add_handler(CommandHandler('help', tg_help))
+    
+    # Telegram Error Handler
+    application.add_error_handler(error_handler)
     
     # Telegram Conversation Handler
     conv_handler = ConversationHandler(
