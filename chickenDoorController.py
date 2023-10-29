@@ -24,6 +24,7 @@ close_time = "19:00"  # Default closing time
 authenticated_users = {}
 
 # Initialize Telegram Conversation States
+AUTHENTICATED = 1
 WAITING_FOR_PASSWORD = 0
 
 
@@ -159,6 +160,7 @@ def send_telegram_message(message):
 # Start the bot
 async def tg_start(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter the password.")
+    context.session['authenticated'] = False  # Set initial authentication state
     return WAITING_FOR_PASSWORD  # Go to the state waiting for password
 
 # Check the password
@@ -166,7 +168,8 @@ async def tg_password(update: Update, context: CallbackContext):
     entered_password = update.message.text
     if entered_password == BOT_PASSWORD:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Authenticated. You can now use the bot.")
-        return ConversationHandler.END  # End the conversation
+        context.session['authenticated'] = True  # Update authentication state
+        return AUTHENTICATED  # End the conversation or go to authenticated state
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong password. Try again.")
         return WAITING_FOR_PASSWORD  # Go back to waiting for the password
@@ -181,7 +184,7 @@ def is_authenticated(chat_id):
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     global progress
@@ -201,7 +204,7 @@ async def tg_open_door(update: Update, context: CallbackContext):
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     global progress
@@ -221,7 +224,7 @@ async def tg_close_door(update: Update, context: CallbackContext):
 async def tg_door_status(update: Update, context: CallbackContext):
     """Telegram command to check the door status."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
@@ -237,7 +240,7 @@ def save_schedule_to_file():
 async def tg_set_schedule(update: Update, context: CallbackContext):
     """Telegram command to set the schedule."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     global open_time, close_time
@@ -274,7 +277,7 @@ def load_schedule_from_file():
 async def tg_get_schedule(update: Update, context: CallbackContext):
     """Telegram command to get the current schedule."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     await context.bot.send_message(
@@ -293,7 +296,7 @@ async def error_handler(update: Update, context: CallbackContext):
 async def tg_get_logs(update: Update, context: CallbackContext):
     """Telegram command to get the last N log entries, default is 25."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     try:
@@ -311,7 +314,7 @@ async def tg_get_logs(update: Update, context: CallbackContext):
 async def tg_help(update: Update, context: CallbackContext):
     """Telegram command to show available commands and their descriptions."""
     chat_id = update.effective_chat.id
-    if not is_authenticated(chat_id):
+    if not context.session.get('authenticated', False)
         await context.bot.send_message(chat_id=chat_id, text="Please authenticate first.")
         return
     help_text = """
