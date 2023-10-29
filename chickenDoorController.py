@@ -259,7 +259,7 @@ async def tg_update_restart(update: Update, context: CallbackContext):
     
     # Run the shell script
     try:
-        subprocess.run(["./update_and_restart.sh"], check=True)
+        subprocess.run(["sudo", "./update_and_restart.sh"], check=True)
         await context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Update and restart process completed successfully.")
     except subprocess.CalledProcessError as e:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Update and restart failed. Error: {e}")
