@@ -5,7 +5,6 @@ import logging
 import os
 import time
 import schedule
-import subprocess
 from threading import Thread
 from datetime import datetime
 import RPi.GPIO as GPIO
@@ -253,25 +252,6 @@ async def tg_help(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode="Markdown")
 
 
-async def tg_update_restart(update: Update, context: CallbackContext):
-    """Telegram command to update code and restart service."""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="🔄 Update and restart process has started.")
-    
-    try:
-        # Equivalent of git pull origin main
-        subprocess.run(["git", "pull", "origin", "main"], check=True)
-        
-        # Equivalent of sudo systemctl daemon-reload
-        subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
-        
-        # Equivalent of sudo systemctl restart chickenDoorController.service
-        subprocess.run(["sudo", "systemctl", "restart", "chickenDoorController.service"], check=True)
-        
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Update and restart process completed successfully.")
-    except subprocess.CalledProcessError as e:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"❌ Update and restart failed. Error: {e}")
-
-
 # === Flask API Endpoints ===
 
 @app.route('/api/open_door', methods=['POST'])
@@ -338,9 +318,8 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
-    application.add_handler(CommandHandler('help', tg_help))
-    application.add_handler(CommandHandler('update', tg_update_restart))  # Add the new Telegram command for update and restart
-
+    application.add_handler(CommandHandler('help', tg_help))  # Add the new Telegram command for help
+    
     # Start Telegram Bot
     application.run_polling()
     logger.info("Bot started")
