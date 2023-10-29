@@ -159,20 +159,24 @@ def send_telegram_message(message):
 
 # Start the bot
 async def tg_start(update: Update, context: CallbackContext):
+    logger.info("Entered tg_start")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter the password.")
-    context.session['authenticated'] = False  # Set initial authentication state
-    return WAITING_FOR_PASSWORD  # Go to the state waiting for password
+    context.session['authenticated'] = False
+    logger.info(f"Set authenticated to {context.session['authenticated']}")
+    return WAITING_FOR_PASSWORD
 
 # Check the password
 async def tg_password(update: Update, context: CallbackContext):
+    logger.info("Entered tg_password")
     entered_password = update.message.text
     if entered_password == BOT_PASSWORD:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Authenticated. You can now use the bot.")
-        context.session['authenticated'] = True  # Update authentication state
-        return AUTHENTICATED  # End the conversation or go to authenticated state
+        context.session['authenticated'] = True
+        logger.info(f"Set authenticated to {context.session['authenticated']}")
+        return AUTHENTICATED
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong password. Try again.")
-        return WAITING_FOR_PASSWORD  # Go back to waiting for the password
+        return WAITING_FOR_PASSWORD
 
 
 # Check if the user is authenticated
