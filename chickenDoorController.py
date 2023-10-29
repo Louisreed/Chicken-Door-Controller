@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
+BOT_PASSWORD = os.getenv('BOT_PASSWORD')
 logger.info("Initialized Telegram bot")
 
 # Initialize GPIO
@@ -147,6 +148,19 @@ def send_telegram_message(message):
 
 
 # === Telegram Bot Commands ===
+
+# Start the bot
+async def tg_start(update: Update, context: CallbackContext):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter the password.")
+
+
+# Authenticate the bot
+async def tg_password(update: Update, context: CallbackContext):
+    entered_password = " ".join(context.args)
+    if entered_password == BOT_PASSWORD:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Authenticated. You can now use the bot.")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong password. Try again.")
 
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
