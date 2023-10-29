@@ -13,6 +13,11 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from flask import Flask, jsonify, render_template
 from dotenv import load_dotenv
 
+# === Global Variables ===
+
+# Initialize Schedule Times
+open_time = "06:00"  # Default opening time
+close_time = "19:00"  # Default closing time
 
 # === Initialization ===
 
@@ -100,7 +105,15 @@ def scheduled_close_door():
     """Scheduled task to close the chicken coop door."""
     close_door()  # Call the existing close_door function
     send_telegram_message("Goodnight! Door closed.")
-
+    
+def update_schedule():
+    """Updates the scheduler with new times."""
+    global open_time, close_time
+    schedule.clear('door-opening')
+    schedule.clear('door-closing')
+    schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
+    schedule.every().day.at(close_time).do(scheduled_close_door).tag('door-closing')
+    
 
 # === Telegram Messages ===
 
@@ -112,23 +125,55 @@ def send_telegram_message(message):
 
 # === Telegram Bot Commands ===
 
+# Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
     open_door()
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
 
+# Close the door
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
     close_door()
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
 
 
+# Check the door status
 async def tg_door_status(update: Update, context: CallbackContext):
     """Telegram command to check the door status."""
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
+   
+   
+# Set the schedule 
+async def tg_set_schedule(update: Update, context: CallbackContext):
+    """Telegram command to set the schedule."""
+    global open_time, close_time
+    # Get the new times from the command args
+    try:
+        open_time, close_time = context.args
+        update_schedule()
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
+        )
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
+        )
 
 
+# Get the schedule
+async def tg_get_schedule(update: Update, context: CallbackContext):
+    """Telegram command to get the current schedule."""
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Door is scheduled to open at {open_time} and close at {close_time}."
+    )
+
+
+# Telegram error handler
 async def error_handler(update: Update, context: CallbackContext):
     """Handles errors for the Telegram bot."""
     logger.error(f"Error handling update {update} - context: {context.error}")
@@ -162,6 +207,26 @@ def api_progress():
     return jsonify(progress=progress)
 
 
+@app.route('/api/set_schedule', methods=['POST'])
+def api_set_schedule():
+    """API endpoint to set the schedule."""
+    global open_time, close_time
+    new_open_time = request.json.get('open_time')
+    new_close_time = request.json.get('close_time')
+    if new_open_time and new_close_time:
+        open_time = new_open_time
+        close_time = new_close_time
+        update_schedule()
+        return jsonify(status='success')
+    return jsonify(status='error', message='Invalid parameters')
+
+
+@app.route('/api/get_schedule', methods=['GET'])
+def api_get_schedule():
+    """API endpoint to get the current schedule."""
+    return jsonify(open_time=open_time, close_time=close_time)
+
+
 @app.route('/')
 def index():
     """Landing page."""
@@ -177,12 +242,14 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('close', tg_close_door))
     application.add_handler(CommandHandler('status', tg_door_status))
     application.add_error_handler(error_handler)
+    application.add_handler(CommandHandler('setschedule', tg_set_schedule))
+    application.add_handler(CommandHandler('getschedule', tg_get_schedule))
+
     application.run_polling()
     logger.info("Bot started")
-
-    # Scheduler Setup
-    schedule.every().day.at("06:00").do(scheduled_open_door)
-    schedule.every().day.at("19:00").do(scheduled_close_door)
+    
+    # Initial Schedule Setup
+    update_schedule()
 
     # Start Flask Thread
     flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
