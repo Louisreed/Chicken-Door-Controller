@@ -79,11 +79,15 @@ def ease_motor(direction, duration):
 async def update_telegram_progress(context: CallbackContext, chat_id, message_id, direction):
     """Updates the Telegram message to show the door's progress."""
     global progress  # make sure to use the global variable
-    
-    for _ in range(10):  # This loop assumes 10 updates; adjust as needed
-        time.sleep(1)  # Simulate some work; replace with actual work if needed
+
+    while progress < 100:  # Loop until the door is fully open/closed
+        time.sleep(1)  # Wait for a short period of time
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
+        
+    # Final 100% update
+    text = f"{direction} door: {'#' * 10} 100%"
+    await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
 
 
 # === Door Control Functions ===
@@ -138,7 +142,8 @@ def send_telegram_message(message):
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
-    # Send initial message
+    global progress
+    progress = 0  # Reset progress
     message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Opening door: ---------- 0%")
     
     # Start the door opening in a new thread
@@ -149,10 +154,12 @@ async def tg_open_door(update: Update, context: CallbackContext):
     await update_telegram_progress(context, update.effective_chat.id, message.message_id, "Opening")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
+
 # Close the door
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
-    # Send initial message
+    global progress
+    progress = 0  # Reset progress
     message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Closing door: ---------- 0%")
     
     # Start the door closing in a new thread
