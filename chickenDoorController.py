@@ -4,6 +4,7 @@
 import logging
 import os
 import time
+import json
 import schedule
 from threading import Thread
 from datetime import datetime
@@ -185,14 +186,20 @@ async def tg_door_status(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
    
    
-# Set the schedule 
+# Save the schedule to a file   
+def save_schedule_to_file():
+    """Save the current schedule to a file."""
+    with open("schedule.json", "w") as f:
+        json.dump({"open_time": open_time, "close_time": close_time}, f)
+
+# Load the schedule from a file
 async def tg_set_schedule(update: Update, context: CallbackContext):
     """Telegram command to set the schedule."""
     global open_time, close_time
-    # Get the new times from the command args
     try:
         open_time, close_time = context.args
         update_schedule()
+        save_schedule_to_file()  # Save the updated schedule to a file
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
@@ -202,6 +209,20 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
             chat_id=update.effective_chat.id,
             text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
         )
+
+
+# Load the schedule from a file
+def load_schedule_from_file():
+    """Load the schedule from a file."""
+    global open_time, close_time
+    try:
+        with open("schedule.json", "r") as f:
+            schedule_data = json.load(f)
+            open_time = schedule_data.get("open_time", "06:00")
+            close_time = schedule_data.get("close_time", "19:00")
+    except FileNotFoundError:
+        open_time = "06:00"
+        close_time = "19:00"
 
 
 # Get the schedule
@@ -325,7 +346,8 @@ if __name__ == '__main__':
     logger.info("Bot started")
     
     # Initial Schedule Setup
-    update_schedule()
+    load_schedule_from_file()  # Load the schedule from a file
+    update_schedule()  # Update the schedule based on loaded times
 
     # Start Flask Thread
     flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
