@@ -90,6 +90,14 @@ async def update_telegram_progress(context: CallbackContext, chat_id, message_id
     await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
 
 
+def read_last_n_logs(n=25):
+    """Reads the last n lines from the log file."""
+    with open("door_log.txt", "r") as log_file:
+        lines = log_file.readlines()
+        last_n_lines = lines[-n:]
+    return last_n_lines
+
+
 # === Door Control Functions ===
 
 def open_door():
@@ -209,6 +217,13 @@ async def tg_get_schedule(update: Update, context: CallbackContext):
 async def error_handler(update: Update, context: CallbackContext):
     """Handles errors for the Telegram bot."""
     logger.error(f"Error handling update {update} - context: {context.error}")
+    
+
+async def tg_get_logs(update: Update, context: CallbackContext):
+    """Telegram command to get the last 25 log entries."""
+    logs = read_last_n_logs()
+    formatted_logs = "\n".join([f"- `{line.strip()}`" for line in logs])  # Format each log entry with Markdown
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"📜 Last 25 log entries:\n\n{formatted_logs}", parse_mode="Markdown")
 
 
 # === Flask API Endpoints ===
@@ -276,7 +291,9 @@ if __name__ == '__main__':
     application.add_error_handler(error_handler)
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
-
+    application.add_handler(CommandHandler('logs', tg_get_logs)) 
+    
+    # Start Telegram Bot
     application.run_polling()
     logger.info("Bot started")
     
