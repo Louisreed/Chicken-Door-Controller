@@ -219,6 +219,7 @@ async def error_handler(update: Update, context: CallbackContext):
     logger.error(f"Error handling update {update} - context: {context.error}")
     
 
+# Get the last N log entries
 async def tg_get_logs(update: Update, context: CallbackContext):
     """Telegram command to get the last N log entries, default is 25."""
     try:
@@ -231,6 +232,25 @@ async def tg_get_logs(update: Update, context: CallbackContext):
     formatted_logs = "\n".join([f"- `{line.strip()}`" for line in logs])  # Format each log entry with Markdown
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"📜 Last {num_logs} log entries:\n\n{formatted_logs}", parse_mode="Markdown")
     
+
+# Show the help message
+async def tg_help(update: Update, context: CallbackContext):
+    """Telegram command to show available commands and their descriptions."""
+    help_text = """
+    🤖 *Chicken Door Controller Bot Commands:*
+
+    - `/open`: Opens the chicken coop door
+    - `/close`: Closes the chicken coop door
+    - `/status`: Shows the current status of the door
+    - `/setschedule [open_time] [close_time]`: Sets the door opening and closing schedule
+    - `/getschedule`: Gets the current door opening and closing schedule
+    - `/logs [number]`: Shows the last N log entries, default is 25
+    - `/help`: Shows this help message
+
+    For example, to set the schedule to open at 06:30 and close at 19:45, use `/setschedule 06:30 19:45`.
+    """
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode="Markdown")
+
 
 # === Flask API Endpoints ===
 
@@ -298,6 +318,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
+    application.add_handler(CommandHandler('help', tg_help))
     
     # Start Telegram Bot
     application.run_polling()
