@@ -10,7 +10,7 @@ from threading import Thread
 from datetime import datetime
 import RPi.GPIO as GPIO
 from telegram import Update, Bot
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext, ConversationHandler, MessageHandler, Filters
 from flask import Flask, jsonify, render_template
 from dotenv import load_dotenv
 
@@ -22,6 +22,9 @@ close_time = "19:00"  # Default closing time
 
 # Initialize authenticated users dictionary
 authenticated_users = {}
+
+# Initialize Telegram Conversation States
+WAITING_FOR_PASSWORD = 0
 
 
 # === Initialization ===
@@ -156,17 +159,17 @@ def send_telegram_message(message):
 # Start the bot
 async def tg_start(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Please enter the password.")
+    return WAITING_FOR_PASSWORD  # Go to the state waiting for password
 
-
-# Authenticate the bot
+# Check the password
 async def tg_password(update: Update, context: CallbackContext):
-    entered_password = " ".join(context.args)
-    chat_id = update.effective_chat.id
+    entered_password = update.message.text
     if entered_password == BOT_PASSWORD:
-        authenticated_users[chat_id] = True
-        await context.bot.send_message(chat_id=chat_id, text="Authenticated. You can now use the bot.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Authenticated. You can now use the bot.")
+        return ConversationHandler.END  # End the conversation
     else:
-        await context.bot.send_message(chat_id=chat_id, text="Wrong password. Try again.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Wrong password. Try again.")
+        return WAITING_FOR_PASSWORD  # Go back to waiting for the password
 
 
 # Check if the user is authenticated
@@ -399,7 +402,18 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
-    application.add_handler(CommandHandler('help', tg_help))  # Add the new Telegram command for help
+    application.add_handler(CommandHandler('help', tg_help))
+    
+    # Telegram Conversation Handler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', tg_start)],
+        states={
+            WAITING_FOR_PASSWORD: [MessageHandler(Filters.text, tg_password)]
+        },
+        fallbacks=[]
+    )
+    application.add_handler(conv_handler)
+
 
     # Start Telegram Bot
     application.run_polling()
