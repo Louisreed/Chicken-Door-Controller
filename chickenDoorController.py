@@ -220,11 +220,17 @@ async def error_handler(update: Update, context: CallbackContext):
     
 
 async def tg_get_logs(update: Update, context: CallbackContext):
-    """Telegram command to get the last 25 log entries."""
-    logs = read_last_n_logs()
+    """Telegram command to get the last N log entries, default is 25."""
+    try:
+        num_logs = int(context.args[0]) if context.args else 25  # Use the first argument as the number of logs, default to 25
+    except ValueError:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid argument. Usage: /logs <number>")
+        return
+    
+    logs = read_last_n_logs(num_logs)  # Pass the number to the function
     formatted_logs = "\n".join([f"- `{line.strip()}`" for line in logs])  # Format each log entry with Markdown
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"📜 Last 25 log entries:\n\n{formatted_logs}", parse_mode="Markdown")
-
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"📜 Last {num_logs} log entries:\n\n{formatted_logs}", parse_mode="Markdown")
+    
 
 # === Flask API Endpoints ===
 
