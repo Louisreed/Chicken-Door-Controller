@@ -81,11 +81,12 @@ async def update_telegram_progress(context: CallbackContext, chat_id, message_id
     """Updates the Telegram message to show the door's progress."""
     global progress  # Make sure to use the global variable
 
-    for progress in range(101):  # Loop from 0 to 100
+    for i in range(11):  # 11 updates (from 0% to 100% inclusive)
+        progress = i * 10
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-        time.sleep(0.1)  # Sleep for 0.1 seconds
-                        
+        time.sleep(1)  # Sleep for 1 second
+                                
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
