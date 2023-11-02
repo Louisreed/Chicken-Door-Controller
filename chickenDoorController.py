@@ -174,10 +174,16 @@ async def tg_door_status(update: Update, context: CallbackContext):
    
    
 # Save the schedule to a file   
-def save_schedule_to_file():
+async def save_schedule_to_file(update: Update, context: CallbackContext):
     """Save the current schedule to a file."""
-    with open("schedule.json", "w") as f:
-        json.dump({"open_time": open_time, "close_time": close_time}, f)
+    try:
+        with open("schedule.json", "w") as f:
+            json.dump({"open_time": open_time, "close_time": close_time}, f)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving schedule to file: {e}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error saving schedule to file: {e}")
+        return False
 
 
 # Load the schedule from a file
