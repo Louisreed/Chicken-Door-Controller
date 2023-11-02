@@ -146,7 +146,8 @@ async def tg_open_door(update: Update, context: CallbackContext):
     door_thread.join()
     
     # Send complete message in Telegram
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+
 
 
 # Close the door
@@ -278,12 +279,12 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
     application.add_handler(CommandHandler('help', tg_help))
 
-    # Send Welcome Message
-    send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
-
     # Start Telegram Bot
     application.run_polling()
     logger.info("Bot started")
+    
+    # Send Welcome Message
+    send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
     
     # Main Loop
     try:
