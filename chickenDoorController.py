@@ -76,28 +76,16 @@ def ease_motor(direction, duration):
         progress = 100 - duty
         time.sleep(0.1)
         
-
-def compute_motor_duration():
-    """Compute the total duration of the ease_motor function."""
-    # Duration for both loops
-    loop_duration = 2 * (101 // 5 * 0.1)
-    # Hardcoded sleep duration
-    sleep_duration = 10 - 0.8
-    return loop_duration + sleep_duration
-
         
 async def update_telegram_progress(context: CallbackContext, chat_id, message_id, direction):
     """Updates the Telegram message to show the door's progress."""
     global progress  # Make sure to use the global variable
-    
-    motor_duration = compute_motor_duration()
-    sleep_time = motor_duration / 100  # Divide by 100 to get sleep time for each percent increment
 
-    while progress < 100:  # Loop until the door is fully open/closed
-        time.sleep(sleep_time)  # Adjusted sleep time based on motor duration
+    for progress in range(101):  # Loop from 0 to 100
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-                
+        time.sleep(0.1)  # Sleep for 0.1 seconds
+                        
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
