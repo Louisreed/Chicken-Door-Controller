@@ -263,35 +263,24 @@ async def tg_help(update: Update, context: CallbackContext):
 
 # === Main Program ===
 
-if __name__ == '__main__':
-    # Initial Schedule Setup
-    load_schedule_from_file()  # Load the schedule from a file
-    update_schedule()  # Update the schedule based on loaded times
+# Initial Schedule Setup
+load_schedule_from_file()  # Load the schedule from a file
+update_schedule()  # Update the schedule based on loaded times
 
-    # Telegram Bot Setup
-    application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
-    application.add_handler(CommandHandler('open', tg_open_door))
-    application.add_handler(CommandHandler('close', tg_close_door))
-    application.add_handler(CommandHandler('status', tg_door_status))
-    application.add_error_handler(error_handler)
-    application.add_handler(CommandHandler('setschedule', tg_set_schedule))
-    application.add_handler(CommandHandler('getschedule', tg_get_schedule))
-    application.add_handler(CommandHandler('logs', tg_get_logs)) 
-    application.add_handler(CommandHandler('help', tg_help))
+# Telegram Bot Setup
+application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
+application.add_handler(CommandHandler('open', tg_open_door))
+application.add_handler(CommandHandler('close', tg_close_door))
+application.add_handler(CommandHandler('status', tg_door_status))
+application.add_error_handler(error_handler)
+application.add_handler(CommandHandler('setschedule', tg_set_schedule))
+application.add_handler(CommandHandler('getschedule', tg_get_schedule))
+application.add_handler(CommandHandler('logs', tg_get_logs)) 
+application.add_handler(CommandHandler('help', tg_help))
 
-    # Start Telegram Bot
-    application.run_polling()
-    logger.info("Bot started")
-    
-    # Send Welcome Message
-    send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
-    
-    # Main Loop
-    try:
-        logger.info("Entering main loop")
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        log_message("Exiting...")
-        pwm.stop()
-        GPIO.cleanup()
+# Start Telegram Bot
+application.run_polling()
+logger.info("Bot started")
+
+# Send Welcome Message
+send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
