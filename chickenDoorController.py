@@ -100,10 +100,6 @@ async def update_telegram_progress(context: CallbackContext, chat_id, message_id
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
         
-    # Final completion message
-    completion_text = f"Door {direction.lower()}ed."
-    await context.bot.send_message(chat_id=chat_id, text=completion_text)
-
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
