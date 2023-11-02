@@ -143,6 +143,9 @@ async def tg_open_door(update: Update, context: CallbackContext):
     door_thread = Thread(target=open_door)
     door_thread.start()
     
+    # Wait for the door to finish opening
+    door_thread.join()
+    
     # Send complete message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
@@ -153,6 +156,9 @@ async def tg_close_door(update: Update, context: CallbackContext):
     # Start the door closing in a new thread
     door_thread = Thread(target=close_door)
     door_thread.start()
+    
+    # Wait for the door to finish opening
+    door_thread.join()
     
     # Send complete message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
