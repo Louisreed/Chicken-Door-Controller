@@ -146,7 +146,7 @@ async def tg_open_door(update: Update, context: CallbackContext):
     door_thread.join()
     
     # Send complete message in Telegram
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door open.")
 
 
 
