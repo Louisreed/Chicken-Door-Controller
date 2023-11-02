@@ -66,46 +66,38 @@ def ease_motor(direction, duration):
     global progress
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
-    
-    # Combined loop for ramping up and down the motor speed
-    for duty in list(range(0, 101, 5)) + list(range(100, -1, -5)):
-        if duty <= 100:
-            progress = duty
-        else:
-            progress = 100 - duty
+    for duty in range(0, 101, 5):  # Increase speed
         pwm.ChangeDutyCycle(duty)
+        progress = duty
         time.sleep(0.1)
-
-    time.sleep(duration - 13.4)  # Adjusted sleep based on total duration
-
+    time.sleep(duration - 0.8)
+    for duty in range(100, -1, -5):  # Decrease speed
+        pwm.ChangeDutyCycle(duty)
+        progress = 100 - duty
+        time.sleep(0.1)
         
 
-def ease_motor_duration():
-    """Compute the duration of the ease_motor function."""
-    # Duration for increasing and decreasing speed
+def compute_motor_duration():
+    """Compute the total duration of the ease_motor function."""
+    # Duration for both loops
     loop_duration = 2 * (101 // 5 * 0.1)
-    
-    # Total duration
-    total_duration = loop_duration + 10 - 0.8  # 10 seconds is hardcoded duration in the original code
-    
-    return total_duration
-        
+    # Hardcoded sleep duration
+    sleep_duration = 10 - 0.8
+    return loop_duration + sleep_duration
+
         
 async def update_telegram_progress(context: CallbackContext, chat_id, message_id, direction):
     """Updates the Telegram message to show the door's progress."""
-    global progress  # make sure to use the global variable
+    global progress  # Make sure to use the global variable
     
-    sleep_time = 0.134  # Adjusted sleep time based on motor duration
+    motor_duration = compute_motor_duration()
+    sleep_time = motor_duration / 100  # Divide by 100 to get sleep time for each percent increment
 
     while progress < 100:  # Loop until the door is fully open/closed
-        time.sleep(sleep_time)
+        time.sleep(sleep_time)  # Adjusted sleep time based on motor duration
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-        
-    # Final completion message
-    completion_text = f"Door {direction.lower()}ed."
-    await context.bot.send_message(chat_id=chat_id, text=completion_text)
-        
+                
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
