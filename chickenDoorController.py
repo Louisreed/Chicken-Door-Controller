@@ -37,17 +37,22 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup([3, 5, 7], GPIO.OUT)
 
+if GPIO is not None:
+    # GPIO has been initialized
+    logger.info("GPIO initialized")
+else:
+    # GPIO has not been initialized
+    logger.info("GPIO not found") 
+
 # Initialize PWM
 pwm = GPIO.PWM(7, 100)
 pwm.start(0)
-logger.info("PWM initialized")
 
 # Initialize Flask
 app = Flask(__name__)
 
 # Initialize Door Status
 door_status = "Closed"
-progress = 0  # Door opening/closing progress
 
 
 # === Helper Functions ===
@@ -63,30 +68,16 @@ def log_message(message):
 
 def ease_motor(direction, duration):
     """Eases the motor speed in and out over a given duration."""
-    global progress
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
     for duty in range(0, 101, 5):  # Increase speed
         pwm.ChangeDutyCycle(duty)
-        progress = duty
         time.sleep(0.1)
     time.sleep(duration - 0.8)
     for duty in range(100, -1, -5):  # Decrease speed
         pwm.ChangeDutyCycle(duty)
-        progress = 100 - duty
         time.sleep(0.1)
         
-        
-async def update_telegram_progress(context: CallbackContext, chat_id, message_id, direction):
-    """Updates the Telegram message to show the door's progress."""
-    global progress  # Make sure to use the global variable
-
-    for i in range(11):  # 11 updates (from 0% to 100% inclusive)
-        progress = i * 10
-        text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
-        await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-        time.sleep(1)  # Sleep for 1 second
-                                
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
@@ -148,32 +139,22 @@ def send_telegram_message(message):
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
-    global progress
-    progress = 0  # Reset progress
-    message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Opening door: ---------- 0%")
-    
     # Start the door opening in a new thread
     door_thread = Thread(target=open_door)
     door_thread.start()
     
-    # Update the progress in Telegram
-    await update_telegram_progress(context, update.effective_chat.id, message.message_id, "Opening")
+    # Send complete message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opened.")
 
 
 # Close the door
 async def tg_close_door(update: Update, context: CallbackContext):
     """Telegram command to close the door."""
-    global progress
-    progress = 0  # Reset progress
-    message = await context.bot.send_message(chat_id=update.effective_chat.id, text="Closing door: ---------- 0%")
-    
     # Start the door closing in a new thread
     door_thread = Thread(target=close_door)
     door_thread.start()
     
-    # Update the progress in Telegram
-    await update_telegram_progress(context, update.effective_chat.id, message.message_id, "Closing")
+    # Send complete message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
 
 
@@ -188,6 +169,7 @@ def save_schedule_to_file():
     """Save the current schedule to a file."""
     with open("schedule.json", "w") as f:
         json.dump({"open_time": open_time, "close_time": close_time}, f)
+
 
 # Load the schedule from a file
 async def tg_set_schedule(update: Update, context: CallbackContext):
@@ -290,12 +272,6 @@ def api_close_door():
 def api_door_status():
     """API endpoint to get the door status."""
     return jsonify(status=door_status)
-
-
-@app.route('/api/progress', methods=['GET'])
-def api_progress():
-    """API endpoint to get the door opening/closing progress."""
-    return jsonify(progress=progress)
 
 
 @app.route('/api/set_schedule', methods=['POST'])
