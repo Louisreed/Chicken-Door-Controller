@@ -11,7 +11,6 @@ from datetime import datetime
 import RPi.GPIO as GPIO
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
-from flask import Flask, jsonify, render_template
 from dotenv import load_dotenv
 
 # === Global Variables ===
@@ -47,9 +46,6 @@ else:
 # Initialize PWM
 pwm = GPIO.PWM(7, 100)
 pwm.start(0)
-
-# Initialize Flask
-app = Flask(__name__)
 
 # Initialize Door Status
 door_status = "Closed"
@@ -264,54 +260,6 @@ async def tg_help(update: Update, context: CallbackContext):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=help_text, parse_mode="Markdown")
 
 
-# === Flask API Endpoints ===
-
-@app.route('/api/open_door', methods=['POST'])
-def api_open_door():
-    """API endpoint to open the door."""
-    open_door()
-    return jsonify(status='success')
-
-
-@app.route('/api/close_door', methods=['POST'])
-def api_close_door():
-    """API endpoint to close the door."""
-    close_door()
-    return jsonify(status='success')
-
-
-@app.route('/api/door_status', methods=['GET'])
-def api_door_status():
-    """API endpoint to get the door status."""
-    return jsonify(status=door_status)
-
-
-@app.route('/api/set_schedule', methods=['POST'])
-def api_set_schedule():
-    """API endpoint to set the schedule."""
-    global open_time, close_time
-    new_open_time = request.json.get('open_time')
-    new_close_time = request.json.get('close_time')
-    if new_open_time and new_close_time:
-        open_time = new_open_time
-        close_time = new_close_time
-        update_schedule()
-        return jsonify(status='success')
-    return jsonify(status='error', message='Invalid parameters')
-
-
-@app.route('/api/get_schedule', methods=['GET'])
-def api_get_schedule():
-    """API endpoint to get the current schedule."""
-    return jsonify(open_time=open_time, close_time=close_time)
-
-
-@app.route('/')
-def index():
-    """Landing page."""
-    return render_template('index.html')
-
-
 # === Main Program ===
 
 if __name__ == '__main__':
@@ -328,7 +276,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('setschedule', tg_set_schedule))
     application.add_handler(CommandHandler('getschedule', tg_get_schedule))
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
-    application.add_handler(CommandHandler('help', tg_help))  # Add the new Telegram command for help
+    application.add_handler(CommandHandler('help', tg_help))
 
     # Send Welcome Message
     send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
@@ -337,16 +285,6 @@ if __name__ == '__main__':
     application.run_polling()
     logger.info("Bot started")
     
-    # Start Flask Thread
-    flask_thread = Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
-    flask_thread.daemon = True
-    flask_thread.start()
-
-    # Start Scheduler Thread
-    scheduler_thread = Thread(target=scheduler_thread)
-    scheduler_thread.daemon = True
-    scheduler_thread.start()
-
     # Main Loop
     try:
         logger.info("Entering main loop")
