@@ -318,6 +318,9 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler('logs', tg_get_logs)) 
     application.add_handler(CommandHandler('help', tg_help))  # Add the new Telegram command for help
 
+    # Send Welcome Message
+    send_telegram_message("🐔 Chicken Door Controller Bot has started! 🤖")
+
     # Start Telegram Bot
     application.run_polling()
     logger.info("Bot started")
