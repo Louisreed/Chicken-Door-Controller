@@ -66,15 +66,18 @@ def ease_motor(direction, duration):
     global progress
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
-    for duty in range(0, 101, 5):  # Increase speed
+    
+    # Combined loop for ramping up and down the motor speed
+    for duty in list(range(0, 101, 5)) + list(range(100, -1, -5)):
+        if duty <= 100:
+            progress = duty
+        else:
+            progress = 100 - duty
         pwm.ChangeDutyCycle(duty)
-        progress = duty
         time.sleep(0.1)
-    time.sleep(duration - 0.8)
-    for duty in range(100, -1, -5):  # Decrease speed
-        pwm.ChangeDutyCycle(duty)
-        progress = 100 - duty
-        time.sleep(0.1)
+
+    time.sleep(duration - 13.4)  # Adjusted sleep based on total duration
+
         
 
 def ease_motor_duration():
@@ -92,13 +95,16 @@ async def update_telegram_progress(context: CallbackContext, chat_id, message_id
     """Updates the Telegram message to show the door's progress."""
     global progress  # make sure to use the global variable
     
-    motor_duration = ease_motor_duration()
-    sleep_time = motor_duration / 100
+    sleep_time = 0.134  # Adjusted sleep time based on motor duration
 
     while progress < 100:  # Loop until the door is fully open/closed
-        time.sleep(sleep_time)  # Adjusted sleep time based on motor duration
+        time.sleep(sleep_time)
         text = f"{direction} door: {'#' * (progress // 10)}{'-' * (10 - progress // 10)} {progress}%"
         await context.bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
+        
+    # Final completion message
+    completion_text = f"Door {direction.lower()}ed."
+    await context.bot.send_message(chat_id=chat_id, text=completion_text)
         
 
 def read_last_n_logs(n=25):
