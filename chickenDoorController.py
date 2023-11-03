@@ -185,39 +185,6 @@ async def save_schedule_to_file(update: Update, context: CallbackContext):
         return False
 
 
-# Load the schedule from a file
-async def tg_set_schedule(update: Update, context: CallbackContext):
-    """Telegram command to set the schedule."""
-    global open_time, close_time
-    try:
-        open_time, close_time = context.args
-        update_schedule()
-        save_schedule_to_file()  # Save the updated schedule to a file
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
-        )
-    except ValueError:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
-        )
-
-
-# Load the schedule from a file
-def load_schedule_from_file():
-    """Load the schedule from a file."""
-    global open_time, close_time
-    try:
-        with open("schedule.json", "r") as f:
-            schedule_data = json.load(f)
-            open_time = schedule_data.get("open_time", "06:00")
-            close_time = schedule_data.get("close_time", "19:00")
-    except FileNotFoundError:
-        open_time = "06:00"
-        close_time = "19:00"
-
-
 # Get the schedule
 async def tg_set_schedule(update: Update, context: CallbackContext):
     """Telegram command to set the schedule."""
@@ -242,6 +209,19 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
             text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
         )
 
+
+# Load the schedule from a file
+def load_schedule_from_file():
+    """Load the schedule from a file."""
+    global open_time, close_time
+    try:
+        with open("schedule.json", "r") as f:
+            schedule_data = json.load(f)
+            open_time = schedule_data.get("open_time", "06:00")
+            close_time = schedule_data.get("close_time", "19:00")
+    except FileNotFoundError:
+        open_time = "06:00"
+        close_time = "19:00"
 
 
 # Telegram error handler
