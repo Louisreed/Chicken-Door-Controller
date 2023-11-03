@@ -131,6 +131,11 @@ def update_schedule():
     schedule.clear('door-closing')
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
     schedule.every().day.at(close_time).do(scheduled_close_door).tag('door-closing')
+
+    # Main loop to run the scheduler
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
     
 
 # === Telegram Messages ===
