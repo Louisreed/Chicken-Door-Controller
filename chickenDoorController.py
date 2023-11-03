@@ -317,4 +317,4 @@ application.add_handler(CommandHandler('help', tg_help))
 
 # Start Telegram Bot
 application.run_polling()
-logger.info("Bot started")r
+logger.info("Bot started")
