@@ -218,7 +218,7 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
         await context.bot.send_message(
             logger.error(f"Error saving schedule to file: {e}")
             chat_id=update.effective_chat.id,
-            text="Invalid arguments. Usage: /setschedule <open_time> <close_time>",
+            text="Invalid arguments. Usage: /setschedule 00:00 00:00",
         )
 
 
