@@ -127,7 +127,6 @@ def scheduled_close_door():
 def update_schedule():
     """Updates the scheduler with new times."""
     global open_time, close_time
-    logger.info("Scheduled updated {open_time} and {close_time}}")
     schedule.clear('door-opening')
     schedule.clear('door-closing')
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
@@ -211,8 +210,9 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
         if not open_time or not close_time:
             raise ValueError("Invalid time format. Ensure times are in HH:MM format.")
         
-        update_schedule()
         save_schedule_to_file()
+        update_schedule()
+        
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
@@ -290,6 +290,7 @@ async def tg_help(update: Update, context: CallbackContext):
 
 # Initial Schedule Setup
 load_schedule_from_file()  # Load the schedule from a file
+logger.info(f"Scheduled times - Open: {open_time}, Close: {close_time}")
 update_schedule()  # Update the schedule based on loaded times
 
 # Telegram Bot Setup
