@@ -127,6 +127,7 @@ def scheduled_close_door():
 def update_schedule():
     """Updates the scheduler with new times."""
     global open_time, close_time
+    logger.info("Scheduled updated {open_time} and {close_time}}")
     schedule.clear('door-opening')
     schedule.clear('door-closing')
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
