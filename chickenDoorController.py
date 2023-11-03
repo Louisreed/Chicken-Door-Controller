@@ -117,18 +117,19 @@ def run_scheduler():
         schedule.run_pending()
         time.sleep(1)
 
-def scheduled_open_door(update: Update, context: CallbackContext):
+def scheduled_open_door():
     """Scheduled task to open the chicken coop door."""
     logger.info("Scheduled open door function called.")
     open_door()  # Call the existing open_door function
+    send_telegram_message("🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
 
 
-def scheduled_close_door(update: Update, context: CallbackContext):
+def scheduled_close_door():
     """Scheduled task to close the chicken coop door."""
     logger.info("Scheduled close door function called.")
     close_door()  # Call the existing close_door function
-
-
+    send_telegram_message("🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
+    
 def update_schedule():
     """Updates the scheduler with new times."""
     global open_time, close_time
@@ -316,4 +317,4 @@ application.add_handler(CommandHandler('help', tg_help))
 
 # Start Telegram Bot
 application.run_polling()
-logger.info("Bot started")
+logger.info("Bot started")r
