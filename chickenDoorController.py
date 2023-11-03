@@ -51,9 +51,6 @@ door_status = "Closed"
 open_time = "06:00"  # Default opening time
 close_time = "19:00"  # Default closing time
 
-# Initialize global bot instance
-bot_instance = Bot(token=TELEGRAM_API_TOKEN)
-
 
 # === Helper Functions ===
 
