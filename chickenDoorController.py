@@ -212,6 +212,7 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
         
         save_schedule_to_file()
         update_schedule()
+        logger.info(f"Updated scheduled times - Open: {open_time}, Close: {close_time}")
         
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
