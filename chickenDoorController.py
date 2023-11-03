@@ -121,14 +121,13 @@ def scheduled_open_door(update: Update, context: CallbackContext):
     """Scheduled task to open the chicken coop door."""
     logger.info("Scheduled open door function called.")
     open_door()  # Call the existing open_door function
-    context.bot.send_message(chat_id=update.effective_chat.id, text="🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
 
 
 def scheduled_close_door(update: Update, context: CallbackContext):
     """Scheduled task to close the chicken coop door."""
     logger.info("Scheduled close door function called.")
     close_door()  # Call the existing close_door function
-    context.bot.send_message(chat_id=update.effective_chat.id, text="🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
+
 
 def update_schedule():
     """Updates the scheduler with new times."""
