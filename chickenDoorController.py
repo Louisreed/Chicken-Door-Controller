@@ -13,12 +13,6 @@ from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from dotenv import load_dotenv
 
-# === Global Variables ===
-
-# Initialize Schedule Times
-open_time = "06:00"  # Default opening time
-close_time = "19:00"  # Default closing time
-
 # === Initialization ===
 
 # Initialize Logging
@@ -49,6 +43,16 @@ pwm.start(0)
 
 # Initialize Door Status
 door_status = "Closed"
+
+
+# === Global Variables ===
+
+# Initialize Schedule Times
+open_time = "06:00"  # Default opening time
+close_time = "19:00"  # Default closing time
+
+# Initialize global bot instance
+bot_instance = Bot(token=TELEGRAM_API_TOKEN)
 
 
 # === Helper Functions ===
@@ -121,14 +125,13 @@ def scheduled_open_door():
     """Scheduled task to open the chicken coop door."""
     logger.info("Scheduled open door function called.")
     open_door()  # Call the existing open_door function
-    send_telegram_message("🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
-
+    bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
 
 def scheduled_close_door():
     """Scheduled task to close the chicken coop door."""
     logger.info("Scheduled close door function called.")
     close_door()  # Call the existing close_door function
-    send_telegram_message("🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
+    bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
     
 def update_schedule():
     """Updates the scheduler with new times."""
@@ -138,14 +141,6 @@ def update_schedule():
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
     schedule.every().day.at(close_time).do(scheduled_close_door).tag('door-closing')
     
-
-# === Telegram Messages ===
-
-def send_telegram_message(message):
-    """Sends a message via Telegram using a synchronous bot."""
-    bot = Bot(token=TELEGRAM_API_TOKEN)
-    bot.send_message(chat_id=TARGET_CHAT_ID, text=message)
-
 
 # === Telegram Bot Commands ===
 
