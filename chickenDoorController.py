@@ -182,7 +182,6 @@ async def save_schedule_to_file(update: Update, context: CallbackContext):
         return True
     except Exception as e:
         logger.error(f"Error saving schedule to file: {e}")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error saving schedule to file: {e}")
         return False
 
 
@@ -220,12 +219,29 @@ def load_schedule_from_file():
 
 
 # Get the schedule
-async def tg_get_schedule(update: Update, context: CallbackContext):
-    """Telegram command to get the current schedule."""
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text=f"Door is scheduled to open at {open_time} and close at {close_time}."
-    )
+async def tg_set_schedule(update: Update, context: CallbackContext):
+    """Telegram command to set the schedule."""
+    global open_time, close_time
+    try:
+        open_time, close_time = context.args
+        update_schedule()
+        success = save_schedule_to_file()  # Save the updated schedule to a file
+        if success:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Failed to save the updated schedule. Please try again."
+            )
+    except ValueError:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
+        )
+
 
 
 # Telegram error handler
