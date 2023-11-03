@@ -83,6 +83,15 @@ def read_last_n_logs(n=25):
     return last_n_lines
 
 
+def format_time(time_str):
+    """Formats a time string to HH:MM."""
+    try:
+        time_obj = datetime.strptime(time_str, "%H:%M")
+        return time_obj.strftime("%H:%M")
+    except ValueError:
+        return None
+
+
 # === Door Control Functions ===
 
 def open_door():
@@ -192,22 +201,24 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
     global open_time, close_time
     try:
         open_time, close_time = context.args
+        
+        # Format the times
+        open_time = format_time(open_time)
+        close_time = format_time(close_time)
+        
+        if not open_time or not close_time:
+            raise ValueError("Invalid time format. Ensure times are in HH:MM format.")
+        
         update_schedule()
-        success = save_schedule_to_file()  # Save the updated schedule to a file
-        if success:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
-            )
-        else:
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Failed to save the updated schedule. Please try again."
-            )
-    except ValueError:
+        save_schedule_to_file()
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Invalid arguments. Usage: /setschedule <open_time> <close_time>"
+            text=f"Schedule updated. Door will open at {open_time} and close at {close_time}."
+        )
+    except ValueError as e:
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=str(e)
         )
 
 
