@@ -111,6 +111,12 @@ def close_door():
     
 # === Scheduler Functions ===
 
+def run_scheduler():
+    """Main loop to run the scheduler."""
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 def scheduled_open_door():
     """Scheduled task to open the chicken coop door."""
     logger.info("Scheduled open door function called.")
@@ -131,11 +137,6 @@ def update_schedule():
     schedule.clear('door-closing')
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
     schedule.every().day.at(close_time).do(scheduled_close_door).tag('door-closing')
-
-    # Main loop to run the scheduler
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
     
 
 # === Telegram Messages ===
@@ -298,6 +299,10 @@ async def tg_help(update: Update, context: CallbackContext):
 load_schedule_from_file()  # Load the schedule from a file
 logger.info(f"Scheduled times - Open: {open_time}, Close: {close_time}")
 update_schedule()  # Update the schedule based on loaded times
+
+# Start Scheduler Thread
+scheduler_thread = Thread(target=run_scheduler)
+scheduler_thread.start()
 
 # Telegram Bot Setup
 application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
