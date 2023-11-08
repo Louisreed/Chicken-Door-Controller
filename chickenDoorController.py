@@ -109,6 +109,12 @@ def close_door():
     log_message("Door closed")
     door_status = "Closed"
     
+def stop_motor():
+    """Stops the motor immediately."""
+    pwm.ChangeDutyCycle(0)  # Stop PWM
+    GPIO.output([3, 5], GPIO.LOW)  # Set motor GPIO pins to low
+    log_message("Motor stopped")
+    
     
 # === Scheduler Functions ===
 
@@ -174,6 +180,13 @@ async def tg_close_door(update: Update, context: CallbackContext):
     
     # Send complete message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+
+
+# Stop the motor
+async def tg_stop_motor(update: Update, context: CallbackContext):
+    """Telegram command to stop the motor."""
+    stop_motor()  # Call the stop_motor function to stop the motor immediately
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Motor stopped.")
 
 
 # Check the door status
@@ -300,6 +313,7 @@ scheduler_thread.start()
 application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
 application.add_handler(CommandHandler('open', tg_open_door))
 application.add_handler(CommandHandler('close', tg_close_door))
+application.add_handler(CommandHandler('stop', tg_stop_motor))
 application.add_handler(CommandHandler('status', tg_door_status))
 application.add_error_handler(error_handler)
 application.add_handler(CommandHandler('setschedule', tg_set_schedule))
