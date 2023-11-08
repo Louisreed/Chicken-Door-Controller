@@ -343,6 +343,7 @@ async def tg_help(update: Update, context: CallbackContext):
 
     - `/open`: Opens the chicken coop door
     - `/close`: Closes the chicken coop door
+    - `/stop`: Stops the chicken coop door while opening/closing
     - `/status`: Shows the current status of the door
     - `/setschedule [open_time] [close_time]`: Sets the door opening and closing schedule
     - `/getschedule`: Gets the current door opening and closing schedule
