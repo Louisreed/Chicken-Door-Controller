@@ -70,13 +70,6 @@ def log_message(message):
 def ease_motor(direction, duration):
     """Eases the motor speed in and out over a given duration."""
     global stop_requested
-    with motor_lock:  # Acquire the lock before checking the flag
-        if stop_requested:
-            # Stop the motor immediately if stop is requested
-            pwm.ChangeDutyCycle(0)
-            GPIO.output([3, 5], GPIO.LOW)  # Assuming these are the motor control pins
-            stop_requested = False  # Reset the flag
-            return  # Exit the function if stop is requested
     
     # Start the motor in the specified direction
     GPIO.output(3, direction)
@@ -89,7 +82,7 @@ def ease_motor(direction, duration):
                 # Stop the motor
                 pwm.ChangeDutyCycle(0)
                 GPIO.output([3, 5], GPIO.LOW)
-                stop_requested = False
+                stop_requested = False  # Reset the flag
                 return  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
@@ -119,9 +112,10 @@ def ease_motor(direction, duration):
         time.sleep(0.1)
 
     # Stop the motor after operation is complete if stop hasn't been requested
-    if not stop_requested:
-        pwm.ChangeDutyCycle(0)
-        GPIO.output([3, 5], GPIO.LOW)
+    with motor_lock:
+        if not stop_requested:
+            pwm.ChangeDutyCycle(0)
+            GPIO.output([3, 5], GPIO.LOW)
 
 
 def read_last_n_logs(n=25):
