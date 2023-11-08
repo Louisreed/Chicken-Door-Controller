@@ -67,41 +67,61 @@ def log_message(message):
         log_file.write(formatted_message + "\n")
 
 
-# Modify the ease_motor function to frequently check the stop_requested flag
 def ease_motor(direction, duration):
     """Eases the motor speed in and out over a given duration."""
     global stop_requested
     with motor_lock:  # Acquire the lock before checking the flag
         if stop_requested:
+            # Stop the motor immediately if stop is requested
+            pwm.ChangeDutyCycle(0)
+            GPIO.output([3, 5], GPIO.LOW)  # Assuming these are the motor control pins
             stop_requested = False  # Reset the flag
             return  # Exit the function if stop is requested
-
+    
+    # Start the motor in the specified direction
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
-    for duty in range(0, 101, 5):  # Increase speed
-        with motor_lock:  # Check the flag within the lock
+
+    # Increase speed
+    for duty in range(0, 101, 5):
+        with motor_lock:
             if stop_requested:
-                stop_requested = False  # Reset the flag
-                break  # Exit if stop is requested
+                # Stop the motor
+                pwm.ChangeDutyCycle(0)
+                GPIO.output([3, 5], GPIO.LOW)
+                stop_requested = False
+                return  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
 
-    # Replace the long sleep with multiple short checks
+    # Maintain the speed for the duration minus ramp up and down time
     start_time = time.time()
-    while time.time() - start_time < duration - 0.8:
-        with motor_lock:  # Check the flag within the lock
+    while time.time() - start_time < duration - 0.8:  # Adjust time for ramp up and down
+        with motor_lock:
             if stop_requested:
-                stop_requested = False  # Reset the flag
-                break  # Exit if stop is requested
+                # Stop the motor
+                pwm.ChangeDutyCycle(0)
+                GPIO.output([3, 5], GPIO.LOW)
+                stop_requested = False
+                return  # Exit if stop is requested
         time.sleep(0.1)  # Sleep for a short time to allow frequent checks
 
-    for duty in range(100, -1, -5):  # Decrease speed
-        with motor_lock:  # Check the flag within the lock
+    # Decrease speed
+    for duty in range(100, -1, -5):
+        with motor_lock:
             if stop_requested:
-                stop_requested = False  # Reset the flag
-                break  # Exit if stop is requested
+                # Stop the motor
+                pwm.ChangeDutyCycle(0)
+                GPIO.output([3, 5], GPIO.LOW)
+                stop_requested = False
+                return  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
+
+    # Stop the motor after operation is complete if stop hasn't been requested
+    if not stop_requested:
+        pwm.ChangeDutyCycle(0)
+        GPIO.output([3, 5], GPIO.LOW)
 
 
 def read_last_n_logs(n=25):
