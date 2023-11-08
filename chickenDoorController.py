@@ -6,6 +6,7 @@ import os
 import time
 import json
 import schedule
+import threading
 from threading import Thread
 from datetime import datetime
 import RPi.GPIO as GPIO
@@ -53,6 +54,7 @@ close_time = "19:00"  # Default closing time
 
 # Flag to signal motor stop
 stop_requested = False  
+motor_lock = threading.Lock()  # Lock for synchronizing access to the stop_requested flag
 
 # === Helper Functions ===
 
@@ -65,23 +67,41 @@ def log_message(message):
         log_file.write(formatted_message + "\n")
 
 
+# Modify the ease_motor function to frequently check the stop_requested flag
 def ease_motor(direction, duration):
     """Eases the motor speed in and out over a given duration."""
     global stop_requested
+    with motor_lock:  # Acquire the lock before checking the flag
+        if stop_requested:
+            stop_requested = False  # Reset the flag
+            return  # Exit the function if stop is requested
+
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
     for duty in range(0, 101, 5):  # Increase speed
-        if stop_requested:
-            break  # Exit if stop is requested
+        with motor_lock:  # Check the flag within the lock
+            if stop_requested:
+                stop_requested = False  # Reset the flag
+                break  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
-    time.sleep(duration - 0.8)
+
+    # Replace the long sleep with multiple short checks
+    start_time = time.time()
+    while time.time() - start_time < duration - 0.8:
+        with motor_lock:  # Check the flag within the lock
+            if stop_requested:
+                stop_requested = False  # Reset the flag
+                break  # Exit if stop is requested
+        time.sleep(0.1)  # Sleep for a short time to allow frequent checks
+
     for duty in range(100, -1, -5):  # Decrease speed
-        if stop_requested:
-            break  # Exit if stop is requested
+        with motor_lock:  # Check the flag within the lock
+            if stop_requested:
+                stop_requested = False  # Reset the flag
+                break  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
-    stop_requested = False  # Reset stop request flag
 
 
 def read_last_n_logs(n=25):
@@ -120,7 +140,8 @@ def close_door():
 def stop_motor():
     """Stops the motor immediately."""
     global stop_requested
-    stop_requested = True  # Signal that a stop has been requested
+    with motor_lock:  # Acquire the lock before setting the flag
+        stop_requested = True  # Signal that a stop has been requested
         
     
 # === Scheduler Functions ===
@@ -135,13 +156,13 @@ def scheduled_open_door():
     """Scheduled task to open the chicken coop door."""
     logger.info("Scheduled open door function called.")
     open_door()  # Call the existing open_door function
-    bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
+    # bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Good Morning, Chickens! Time to rise and shine! 🌞 Door opened. 🐔")
 
 def scheduled_close_door():
     """Scheduled task to close the chicken coop door."""
     logger.info("Scheduled close door function called.")
     close_door()  # Call the existing close_door function
-    bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
+    # bot_instance.send_message(chat_id=TARGET_CHAT_ID, text="🐔 Goodnight, feathery friends! Dream of corn and worms! 🌙 Door closed. 🐔")
     
 def update_schedule():
     """Updates the scheduler with new times."""
@@ -164,12 +185,17 @@ async def tg_open_door(update: Update, context: CallbackContext):
     # Send opening message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door opening...")
 
-    # Wait for the door to finish opening
-    door_thread.join()
-    
-    # Send complete message in Telegram
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door open.")
+    # Check the door_thread in the background
+    def check_door_thread():
+        door_thread.join()
+        # Ensure the stop wasn't requested before sending the closed message
+        if not stop_requested:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Door open.")
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Door opening was interrupted.")
 
+    # Start a new thread to check when the door_thread has finished without blocking
+    Thread(target=check_door_thread).start()
 
 
 # Close the door
@@ -182,12 +208,17 @@ async def tg_close_door(update: Update, context: CallbackContext):
     # Send closing message in Telegram
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closing...")
 
-    # Wait for the door to finish opening
-    door_thread.join()
-    
-    # Send complete message in Telegram
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+    # Check the door_thread in the background
+    def check_door_thread():
+        door_thread.join()
+        # Ensure the stop wasn't requested before sending the closed message
+        if not stop_requested:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Door closed.")
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="Door closing was interrupted.")
 
+    # Start a new thread to check when the door_thread has finished without blocking
+    Thread(target=check_door_thread).start()
 
 # Stop the motor
 async def tg_stop_motor(update: Update, context: CallbackContext):
