@@ -51,6 +51,8 @@ door_status = "Closed"
 open_time = "06:00"  # Default opening time
 close_time = "19:00"  # Default closing time
 
+# Flag to signal motor stop
+stop_requested = False  
 
 # === Helper Functions ===
 
@@ -65,16 +67,22 @@ def log_message(message):
 
 def ease_motor(direction, duration):
     """Eases the motor speed in and out over a given duration."""
+    global stop_requested
     GPIO.output(3, direction)
     GPIO.output(5, not direction)
     for duty in range(0, 101, 5):  # Increase speed
+        if stop_requested:
+            break  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
     time.sleep(duration - 0.8)
     for duty in range(100, -1, -5):  # Decrease speed
+        if stop_requested:
+            break  # Exit if stop is requested
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
-        
+    stop_requested = False  # Reset stop request flag
+
 
 def read_last_n_logs(n=25):
     """Reads the last n lines from the log file."""
@@ -111,10 +119,9 @@ def close_door():
     
 def stop_motor():
     """Stops the motor immediately."""
-    pwm.ChangeDutyCycle(0)  # Stop PWM
-    GPIO.output([3, 5], GPIO.LOW)  # Set motor GPIO pins to low
-    log_message("Motor stopped")
-    
+    global stop_requested
+    stop_requested = True  # Signal that a stop has been requested
+        
     
 # === Scheduler Functions ===
 
@@ -185,7 +192,11 @@ async def tg_close_door(update: Update, context: CallbackContext):
 # Stop the motor
 async def tg_stop_motor(update: Update, context: CallbackContext):
     """Telegram command to stop the motor."""
-    stop_motor()  # Call the stop_motor function to stop the motor immediately
+    stop_motor()  # Signal to stop the motor
+    # The message will be sent immediately
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Stopping motor...")
+    # You might want to wait a bit to ensure the motor stops
+    time.sleep(1)  # Give a moment for the motor to respond to the stop signal
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Motor stopped.")
 
 
@@ -315,11 +326,11 @@ application.add_handler(CommandHandler('open', tg_open_door))
 application.add_handler(CommandHandler('close', tg_close_door))
 application.add_handler(CommandHandler('stop', tg_stop_motor))
 application.add_handler(CommandHandler('status', tg_door_status))
-application.add_error_handler(error_handler)
 application.add_handler(CommandHandler('setschedule', tg_set_schedule))
 application.add_handler(CommandHandler('getschedule', tg_get_schedule))
 application.add_handler(CommandHandler('logs', tg_get_logs)) 
 application.add_handler(CommandHandler('help', tg_help))
+application.add_error_handler(error_handler)
 
 # Start Telegram Bot
 application.run_polling()
