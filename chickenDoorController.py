@@ -171,7 +171,7 @@ def extract_egg_count_from_response(egg_count_response):
             return int(egg)
         except ValueError:
             continue
-    return 0
+    return "Failed to count eggs."
 
 # === Door Control Functions ===
 
@@ -390,7 +390,12 @@ async def tg_count_eggs(update: Update, context: CallbackContext):
             egg_count_response = await analyze_image_with_openai(image_url)
             logger.info(f"Received response from OpenAI: {egg_count_response}")
             egg_count = extract_egg_count_from_response(egg_count_response)
-            await context.bot.send_message(chat_id=chat_id, text=f"Number of eggs detected: {egg_count}")
+            # if response is "Failed to count eggs." then send the response
+            if egg_count == "Failed to count eggs.": 
+                await context.bot.send_message(chat_id=chat_id, text=egg_count)
+            else:
+                await context.bot.send_message(chat_id=chat_id, text=f"Number of eggs detected: {egg_count}")
+
         except Exception as e:
             logger.error(f"Error during OpenAI analysis: {e}")
             await context.bot.send_message(chat_id=chat_id, text="Error processing image.")
