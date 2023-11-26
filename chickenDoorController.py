@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import picamera
 from io import BytesIO
 import requests
-import openai
+from openai import OpenAI
 
 
 # === Initialization ===
@@ -30,6 +30,9 @@ load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
+# Set up OpenAI Client
+client = OpenAI()
 
 # Initialize GPIO
 GPIO.setwarnings(False)
@@ -398,18 +401,27 @@ async def tg_count_eggs(update: Update, context: CallbackContext):
 
 async def analyze_image_with_openai(image_url):
     """Sends the image URL to OpenAI for analysis."""
-    prompt = f"There is a photo of a chicken coop. Can you tell me how many eggs are visible in this photo? {image_url}"
+    # prompt = f"There is a photo of a chicken coop. Can you tell me how many eggs are visible in this photo? {image_url}"
     
     try:
         logger.info("Making request to OpenAI API")
-        response = openai.Completion.create(
-            model="gpt-4-1106-preview",
-            prompt=prompt,
-            max_tokens=100
-        )
-        answer = response.choices[0].text.strip()
-        logger.info(f"Response from OpenAI: {answer}")
-        return answer
+        # response = openai.Completion.create(
+        #     model="gpt-4-1106-preview",
+        #     prompt=prompt,
+        #     max_tokens=100
+        # )
+        response = await client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+        # answer = response.choices[0].text.strip()
+        logger.info(f"Response from OpenAI: {response}")
+        return response
     except Exception as e:
         logger.error(f"Error in OpenAI API call: {e}")
         return "Error in analyzing image."
