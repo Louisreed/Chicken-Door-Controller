@@ -422,7 +422,7 @@ async def analyze_image_with_openai(image_url):
                 "content": "Say this is a test",
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4-1106-preview",
     )
         # answer = response.choices[0].text.strip()
         logger.info(f"Response from OpenAI: {response}")
