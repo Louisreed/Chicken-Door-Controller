@@ -9,15 +9,12 @@ import schedule
 import threading
 from threading import Thread
 from datetime import datetime
+import RPi.GPIO as GPIO
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from dotenv import load_dotenv
-from io import BytesIO
-
-
-# Raspberry Pi Imports
-import RPi.GPIO as GPIO
 import picamera
+from io import BytesIO
 import requests
 import openai
 
@@ -34,26 +31,21 @@ TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+# Initialize GPIO
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup([3, 5, 7], GPIO.OUT)
+
 if GPIO is not None:
-    # Initialize GPIO
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup([3, 5, 7], GPIO.OUT)
-    logger.info("GPIO setup")
-    
     # GPIO has been initialized
     logger.info("GPIO initialized")
 else:
     # GPIO has not been initialized
-    logger.error("GPIO not initialized")
+    logger.info("GPIO not found") 
 
 # Initialize PWM
-if GPIO is not None:
-    pwm = GPIO.PWM(7, 100)
-    pwm.start(0)
-    logger.info("PWM setup")
-else:
-    logger.error("PWM not initialized") 
+pwm = GPIO.PWM(7, 100)
+pwm.start(0)
 
 # Initialize Door Status
 door_status = "Closed"
