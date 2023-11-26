@@ -402,19 +402,18 @@ async def analyze_image_with_openai(image_url):
     
     try:
         logger.info("Making request to OpenAI API")
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ]
+        response = openai.Completion.create(
+            model="gpt-4-1106-preview",
+            prompt=prompt,
+            max_tokens=100
         )
-        answer = response['choices'][0]['message']['content']
+        answer = response.choices[0].text.strip()
         logger.info(f"Response from OpenAI: {answer}")
-        return answer.strip()
+        return answer
     except Exception as e:
         logger.error(f"Error in OpenAI API call: {e}")
         return "Error in analyzing image."
+
  
 
 # Telegram error handler
