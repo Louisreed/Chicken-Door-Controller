@@ -13,6 +13,8 @@ import RPi.GPIO as GPIO
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from dotenv import load_dotenv
+import picamera
+from io import BytesIO
 
 # === Initialization ===
 
@@ -133,6 +135,20 @@ def format_time(time_str):
         return time_obj.strftime("%H:%M")
     except ValueError:
         return None
+    
+# === Camera Functions ===
+
+def capture_image():
+    """Captures an image and returns the image data as a byte stream."""
+    stream = BytesIO()
+    with picamera.PiCamera() as camera:
+        camera.resolution = (1024, 768)  # You can adjust the resolution as needed
+        camera.start_preview()
+        # Camera warm-up time
+        time.sleep(2)
+        camera.capture(stream, 'jpeg')
+    stream.seek(0)  # Rewind the stream to the beginning
+    return stream
 
 
 # === Door Control Functions ===
@@ -189,6 +205,7 @@ def update_schedule():
 
 # === Telegram Bot Commands ===
 
+
 # Open the door
 async def tg_open_door(update: Update, context: CallbackContext):
     """Telegram command to open the door."""
@@ -233,6 +250,7 @@ async def tg_close_door(update: Update, context: CallbackContext):
 
     # Start a new thread to check when the door_thread has finished without blocking
     Thread(target=check_door_thread).start()
+
 
 # Stop the motor
 async def tg_stop_motor(update: Update, context: CallbackContext):
@@ -314,6 +332,15 @@ async def tg_get_schedule(update: Update, context: CallbackContext):
         text=f"Door is scheduled to open at {open_time} and close at {close_time}."
     )
 
+# Capture and send a picture    
+async def tg_send_picture(update: Update, context: CallbackContext):
+    """Telegram command to capture and send a picture."""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Capturing image...")
+    
+    image_stream = capture_image()
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_stream)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Image sent.")
+
 
 # Telegram error handler
 async def error_handler(update: Update, context: CallbackContext):
@@ -345,6 +372,7 @@ async def tg_help(update: Update, context: CallbackContext):
     - `/close`: Closes the chicken coop door
     - `/stop`: Stops the chicken coop door while opening/closing
     - `/status`: Shows the current status of the door
+    - `/picture`: Captures and sends a picture from the camera
     - `/setschedule [open_time] [close_time]`: Sets the door opening and closing schedule
     - `/getschedule`: Gets the current door opening and closing schedule
     - `/logs [number]`: Shows the last N log entries, default is 25
@@ -371,6 +399,7 @@ application = ApplicationBuilder().token(TELEGRAM_API_TOKEN).build()
 application.add_handler(CommandHandler('open', tg_open_door))
 application.add_handler(CommandHandler('close', tg_close_door))
 application.add_handler(CommandHandler('stop', tg_stop_motor))
+application.add_handler(CommandHandler('picture', tg_send_picture))
 application.add_handler(CommandHandler('status', tg_door_status))
 application.add_handler(CommandHandler('setschedule', tg_set_schedule))
 application.add_handler(CommandHandler('getschedule', tg_get_schedule))
