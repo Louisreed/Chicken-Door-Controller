@@ -52,7 +52,6 @@ TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Initialize GPIO
-GPIO.cleanup()
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup([3, 5, 7], GPIO.OUT)
