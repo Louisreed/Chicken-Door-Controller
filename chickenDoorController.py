@@ -20,6 +20,17 @@ try:
     import picamera
 except ModuleNotFoundError:
     GPIO = None
+    # pause and ask the user for check the connection to the Raspberry Pi, repeat if still not detected
+    while GPIO is None:
+        print("Raspberry Pi not detected. Please check the connection and try again.")
+        time.sleep(5)
+        try:
+            import RPi.GPIO as GPIO
+            import picamera
+        except ModuleNotFoundError:
+            GPIO = None
+            continue
+
 
 # === Initialization ===
 
@@ -34,16 +45,15 @@ TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 logger.info("Initialized Telegram bot")
 
 # Initialize GPIO
+GPIO.cleanup()
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup([3, 5, 7], GPIO.OUT)
+logger.info("GPIO setup")
 
 if GPIO is not None:
     # GPIO has been initialized
     logger.info("GPIO initialized")
-else:
-    # GPIO has not been initialized
-    logger.info("GPIO not found") 
 
 # Initialize PWM
 pwm = GPIO.PWM(7, 100)
@@ -345,11 +355,16 @@ async def tg_get_schedule(update: Update, context: CallbackContext):
 # Capture and send a picture    
 async def tg_send_picture(update: Update, context: CallbackContext):
     """Telegram command to capture and send a picture."""
+    logger.info("Received picture command")
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Capturing image...")
     
     image_stream = capture_image()
-    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_stream)
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Image sent.")
+    if image_stream:
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_stream)
+        logger.info("Image sent to user")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to capture image.")
+        logger.error("Failed to capture image")
 
 
 # Telegram error handler
