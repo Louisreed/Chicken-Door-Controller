@@ -9,12 +9,17 @@ import schedule
 import threading
 from threading import Thread
 from datetime import datetime
-import RPi.GPIO as GPIO
 from telegram import Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from dotenv import load_dotenv
-import picamera
 from io import BytesIO
+
+# Raspberry Pi Imports
+try:
+    import RPi.GPIO as GPIO
+    import picamera
+except ModuleNotFoundError:
+    GPIO = None
 
 # === Initialization ===
 
@@ -140,14 +145,19 @@ def format_time(time_str):
 
 def capture_image():
     """Captures an image and returns the image data as a byte stream."""
+    logger.info("Attempting to capture an image")
     stream = BytesIO()
-    with picamera.PiCamera() as camera:
-        camera.resolution = (1024, 768)  # You can adjust the resolution as needed
-        camera.start_preview()
-        # Camera warm-up time
-        time.sleep(2)
-        camera.capture(stream, 'jpeg')
-    stream.seek(0)  # Rewind the stream to the beginning
+    try:
+        with picamera.PiCamera() as camera:
+            camera.resolution = (1024, 768)
+            camera.start_preview()
+            time.sleep(2)  # Camera warm-up time
+            camera.capture(stream, 'jpeg')
+    except Exception as e:
+        logger.error(f"Error capturing image: {e}")
+        return None
+    stream.seek(0)
+    logger.info("Image captured successfully")
     return stream
 
 
