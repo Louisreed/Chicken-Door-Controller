@@ -32,7 +32,7 @@ TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Set up OpenAI Client
-client = OpenAI()
+client = OpenAI(OPENAI_API_KEY)
 
 # Initialize GPIO
 GPIO.setwarnings(False)
