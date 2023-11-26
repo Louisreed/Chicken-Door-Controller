@@ -51,23 +51,29 @@ TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
-# Initialize GPIO
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup([3, 5, 7], GPIO.OUT)
-logger.info("GPIO setup")
-
 if GPIO is not None:
+    # Initialize GPIO
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup([3, 5, 7], GPIO.OUT)
+    logger.info("GPIO setup")
+    
     # GPIO has been initialized
     logger.info("GPIO initialized")
+else:
+    # GPIO has not been initialized
+    logger.error("GPIO not initialized")
 
 # Initialize PWM
-pwm = GPIO.PWM(7, 100)
-pwm.start(0)
+if GPIO is not None:
+    pwm = GPIO.PWM(7, 100)
+    pwm.start(0)
+    logger.info("PWM setup")
+else:
+    logger.error("PWM not initialized") 
 
 # Initialize Door Status
 door_status = "Closed"
-
 
 # === Global Variables ===
 
