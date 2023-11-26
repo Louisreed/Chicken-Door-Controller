@@ -26,6 +26,10 @@ except ModuleNotFoundError:
     # pause and ask the user for check the connection to the Raspberry Pi, repeat if still not detected
     while GPIO is None:
         print("Raspberry Pi not detected. Please check the connection and try again.")
+        print("Press 't' for testing mode and continue.")
+        user_input = input()
+        if user_input.lower() == 't':
+            break
         time.sleep(5)
         try:
             import RPi.GPIO as GPIO
@@ -83,7 +87,7 @@ def log_message(message):
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_message = f"{current_time} - {message}"
     print(formatted_message)
-    with open("door_log.txt", "a") as log_file:
+    with open("chicken.log", "a") as log_file:
         log_file.write(formatted_message + "\n")
 
 
@@ -237,6 +241,28 @@ def update_schedule():
     schedule.every().day.at(open_time).do(scheduled_open_door).tag('door-opening')
     schedule.every().day.at(close_time).do(scheduled_close_door).tag('door-closing')
     
+def save_schedule_to_file():
+    """Save the current schedule to a file."""
+    try:
+        with open("schedule.json", "w") as f:
+            json.dump({"open_time": open_time, "close_time": close_time}, f)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving schedule to file: {e}")
+        return False
+
+def load_schedule_from_file():
+    """Load the schedule from a file."""
+    global open_time, close_time
+    try:
+        with open("schedule.json", "r") as f:
+            schedule_data = json.load(f)
+            open_time = schedule_data.get("open_time", "06:00")
+            close_time = schedule_data.get("close_time", "19:00")
+    except FileNotFoundError:
+        open_time = "06:00"
+        close_time = "19:00"
+    
 
 # === Telegram Bot Commands ===
 
@@ -303,18 +329,6 @@ async def tg_door_status(update: Update, context: CallbackContext):
     """Telegram command to check the door status."""
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"The door is currently {door_status}.")
    
-   
-# Save the schedule to a file   
-def save_schedule_to_file():
-    """Save the current schedule to a file."""
-    try:
-        with open("schedule.json", "w") as f:
-            json.dump({"open_time": open_time, "close_time": close_time}, f)
-        return True
-    except Exception as e:
-        logger.error(f"Error saving schedule to file: {e}")
-        return False
-
 
 # Load the schedule from a file
 async def tg_set_schedule(update: Update, context: CallbackContext):
@@ -343,20 +357,6 @@ async def tg_set_schedule(update: Update, context: CallbackContext):
             chat_id=update.effective_chat.id,
             text="Invalid arguments. Usage: /setschedule 00:00 00:00"
         )
-
-
-# Load the schedule from a file
-def load_schedule_from_file():
-    """Load the schedule from a file."""
-    global open_time, close_time
-    try:
-        with open("schedule.json", "r") as f:
-            schedule_data = json.load(f)
-            open_time = schedule_data.get("open_time", "06:00")
-            close_time = schedule_data.get("close_time", "19:00")
-    except FileNotFoundError:
-        open_time = "06:00"
-        close_time = "19:00"
 
 
 # Get the schedule
