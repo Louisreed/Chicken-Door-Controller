@@ -29,10 +29,11 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Set up OpenAI Client
-client = OpenAI(OPENAI_API_KEY)
+client = OpenAI(
+    os.environ.get("OPENAI_API_KEY")
+)
 
 # Initialize GPIO
 GPIO.setwarnings(False)
