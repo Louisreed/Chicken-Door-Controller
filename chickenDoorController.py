@@ -504,5 +504,6 @@ application.add_handler(CommandHandler('help', tg_help))
 application.add_error_handler(error_handler)
 
 # Start Telegram Bot
+logger.info("Starting Telegram bot polling")
 application.run_polling()
 logger.info("Bot started")
