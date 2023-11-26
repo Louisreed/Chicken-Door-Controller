@@ -14,10 +14,13 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 from dotenv import load_dotenv
 from io import BytesIO
 
+
 # Raspberry Pi Imports
 try:
     import RPi.GPIO as GPIO
     import picamera
+    import requests
+    import openai
 except ModuleNotFoundError:
     GPIO = None
     # pause and ask the user for check the connection to the Raspberry Pi, repeat if still not detected
@@ -42,7 +45,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
-logger.info("Initialized Telegram bot")
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Initialize GPIO
 GPIO.cleanup()
@@ -170,6 +173,18 @@ def capture_image():
     logger.info("Image captured successfully")
     return stream
 
+
+def extract_egg_count_from_response(egg_count_response):
+    """Extracts the egg count from the OpenAI response."""
+    # find a number in the response, if none return 0
+    # for illustration purposes, let's assume the response is a string
+    # with a number in it
+    for egg in egg_count_response.split():
+        try:
+            return int(egg)
+        except ValueError:
+            continue
+    return 0
 
 # === Door Control Functions ===
 
@@ -352,6 +367,7 @@ async def tg_get_schedule(update: Update, context: CallbackContext):
         text=f"Door is scheduled to open at {open_time} and close at {close_time}."
     )
 
+
 # Capture and send a picture    
 async def tg_send_picture(update: Update, context: CallbackContext):
     """Telegram command to capture and send a picture."""
@@ -365,7 +381,61 @@ async def tg_send_picture(update: Update, context: CallbackContext):
     else:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to capture image.")
         logger.error("Failed to capture image")
+        
+      
+# Count the eggs        
+async def tg_count_eggs(update: Update, context: CallbackContext):
+    """Telegram command to count the eggs."""
+    chat_id = update.effective_chat.id
+    logger.info("Received command to count eggs")
+    await context.bot.send_message(chat_id=chat_id, text="Taking a photo...")
 
+    image_stream = capture_image()
+    if image_stream:
+        logger.info("Image captured, sending to Telegram")
+        message = await context.bot.send_photo(chat_id=chat_id, photo=image_stream)
+        logger.info("Image sent to Telegram, retrieving file_id")
+        
+        photo_file_id = message.photo[-1].file_id
+        file = await context.bot.get_file(photo_file_id)
+        file_path = file.file_path
+        image_url = f"https://api.telegram.org/file/bot{TELEGRAM_API_TOKEN}/{file_path}"
+        
+        logger.info(f"Image URL obtained: {image_url}")
+        try:
+            logger.info("Sending image URL to OpenAI for analysis")
+            egg_count_response = await analyze_image_with_openai(image_url)
+            logger.info(f"Received response from OpenAI: {egg_count_response}")
+            egg_count = extract_egg_count_from_response(egg_count_response)
+            await context.bot.send_message(chat_id=chat_id, text=f"Number of eggs detected: {egg_count}")
+        except Exception as e:
+            logger.error(f"Error during OpenAI analysis: {e}")
+            await context.bot.send_message(chat_id=chat_id, text="Error processing image.")
+    else:
+        logger.error("Failed to capture the image")
+        await context.bot.send_message(chat_id=chat_id, text="Failed to capture the image.")
+
+
+async def analyze_image_with_openai(image_url):
+    """Sends the image URL to OpenAI for analysis."""
+    prompt = f"There is a photo of a chicken coop. Can you tell me how many eggs are visible in this photo? {image_url}"
+    
+    try:
+        logger.info("Making request to OpenAI API")
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        answer = response['choices'][0]['message']['content']
+        logger.info(f"Response from OpenAI: {answer}")
+        return answer.strip()
+    except Exception as e:
+        logger.error(f"Error in OpenAI API call: {e}")
+        return "Error in analyzing image."
+ 
 
 # Telegram error handler
 async def error_handler(update: Update, context: CallbackContext):
@@ -425,6 +495,7 @@ application.add_handler(CommandHandler('open', tg_open_door))
 application.add_handler(CommandHandler('close', tg_close_door))
 application.add_handler(CommandHandler('stop', tg_stop_motor))
 application.add_handler(CommandHandler('picture', tg_send_picture))
+application.add_handler(CommandHandler('eggs', tg_count_eggs))
 application.add_handler(CommandHandler('status', tg_door_status))
 application.add_handler(CommandHandler('setschedule', tg_set_schedule))
 application.add_handler(CommandHandler('getschedule', tg_get_schedule))
