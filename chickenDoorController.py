@@ -16,27 +16,10 @@ from io import BytesIO
 
 
 # Raspberry Pi Imports
-try:
-    import RPi.GPIO as GPIO
-    import picamera
-    import requests
-    import openai
-except ModuleNotFoundError:
-    GPIO = None
-    # pause and ask the user for check the connection to the Raspberry Pi, repeat if still not detected
-    while GPIO is None:
-        print("Raspberry Pi not detected. Please check the connection and try again.")
-        print("Press 't' for testing mode and continue.")
-        user_input = input()
-        if user_input.lower() == 't':
-            break
-        time.sleep(5)
-        try:
-            import RPi.GPIO as GPIO
-            import picamera
-        except ModuleNotFoundError:
-            GPIO = None
-            continue
+import RPi.GPIO as GPIO
+import picamera
+import requests
+import openai
 
 
 # === Initialization ===
