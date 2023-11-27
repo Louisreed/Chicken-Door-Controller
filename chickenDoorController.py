@@ -25,6 +25,8 @@ from openai import OpenAI
 logging.basicConfig(filename='chicken.log', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+logger.info("Starting Chicken Door Controller")
+
 # Load Environment Variables
 load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
