@@ -32,10 +32,14 @@ load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
 
+logger.info("Telegram API Token loaded")
+
 # Set up OpenAI Client
 client = OpenAI(
     os.environ.get("OPENAI_API_KEY")
 )
+
+logger.info("OpenAI client loaded")
 
 # Initialize GPIO
 GPIO.setwarnings(False)
