@@ -413,11 +413,6 @@ async def analyze_image_with_openai(image_url):
     
     try:
         logger.info("Making request to OpenAI API")
-        # response = openai.Completion.create(
-        #     model="gpt-4-1106-preview",
-        #     prompt=prompt,
-        #     max_tokens=100
-        # )
         response = await openai.chat.completions.create(
         messages=[
             {
@@ -425,7 +420,8 @@ async def analyze_image_with_openai(image_url):
                 "content": "Say this is a test",
             }
         ],
-        model="gpt-4-1106-preview",
+        # model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo",
     )
         # answer = response.choices[0].text.strip()
         logger.info(f"Response from OpenAI: {response}")
