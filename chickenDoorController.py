@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import picamera
 from io import BytesIO
 import requests
-from openai import OpenAI
+import openai
 
 
 # === Initialization ===
@@ -31,14 +31,10 @@ logger.info("Starting Chicken Door Controller")
 load_dotenv()
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 TARGET_CHAT_ID = os.getenv('TARGET_CHAT_ID')
-
 logger.info("Telegram API Token loaded")
 
-# Set up OpenAI Client
-client = OpenAI(
-    os.environ.get("OPENAI_API_KEY")
-)
-
+# Add OpenAI API Key
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 logger.info("OpenAI client loaded")
 
 # Initialize GPIO
@@ -422,7 +418,7 @@ async def analyze_image_with_openai(image_url):
         #     prompt=prompt,
         #     max_tokens=100
         # )
-        response = await client.chat.completions.create(
+        response = await openai.chat.completions.create(
         messages=[
             {
                 "role": "user",
